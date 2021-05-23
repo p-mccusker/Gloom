@@ -1,22 +1,457 @@
 #include "Level.h"
 
+std::vector<std::tuple<int, int>>  bresenham(int x1, int y1, int x2, int y2) {
+	std::vector<std::tuple<int, int>> coords;
+	int m_new = 2 * (y2 - y1);
+	int slope_error_new = m_new - (x2 - x1);
+	for (int x = x1, y = y1; x <= x2; x++)
+	{
+		// Add slope to increment angle formed
+		slope_error_new += m_new;
+
+		// Slope error reached limit, time to
+		// increment y and update slope error.
+		if (slope_error_new >= 0)
+		{
+			y++;
+			slope_error_new -= 2 * (x2 - x1);
+		}
+		coords.emplace_back(x, y);
+	}
+	return coords;
+}
+
 Level::Level(const int& tilesWide, const int& tilesHigh)
 {
 	_width = tilesWide;
 	_height = tilesHigh;
-
+	_startRoom = nullptr;
+	_exitRoom = nullptr;
 	for (int y = 0; y < tilesHigh; y++) {
-		std::vector<EnvTile> envline;
+		std::vector<Tile> envline;
 		std::vector<Container> cline;
 		std::vector<Entity> entline;
 
 		for (int x = 0; x < tilesWide; x++) {
-			envline.emplace_back(x, y, '?');
-			cline.emplace_back(nullptr, '?', x, y);
-			entline.emplace_back('?', x, y);
+			envline.emplace_back(x, y, Tile::Uninitialized);
+			cline.emplace_back(nullptr, Tile::Uninitialized, x, y);
+			entline.emplace_back(Tile::Uninitialized, x, y);
 		}
 		_envMap.push_back(envline);
 		_containerMap.push_back(cline);
 		_entityMap.push_back(entline);
+	}
+}
+
+Level::~Level()
+{
+	for (auto room : _rooms) {
+		delete room;
+		room = nullptr;
+	}
+	delete _startRoom;
+	delete _exitRoom;
+	_startRoom = nullptr;
+	_exitRoom = nullptr;
+}
+
+Room* Level::findRectRoomLoc()
+{
+	bool overlap = false;
+	bool locationFound = false;
+	int numTries = 0;
+	int leftX = 0, rightX = 0, topY = 0, bottomY = 0;
+	
+	Room* newRoom = nullptr;
+
+	while (!locationFound && numTries < 150) {
+
+
+		int roomWidth = GENERATOR.randNum(Room::minRoomWidth, Room::maxRoomWidth + 1);
+		int roomHeight = GENERATOR.randNum(Room::minRoomHeight, Room::maxRoomHeight + 1);
+
+		leftX = GENERATOR.randNum(1, (_width - roomWidth));
+		topY = GENERATOR.randNum(1, (_height - roomHeight));
+
+		rightX = leftX + roomWidth;
+		bottomY = topY + roomHeight;
+
+		newRoom = new Room(leftX, topY, roomWidth, roomHeight);
+
+		for (auto& room : _rooms) {
+			if (newRoom->Intersect(*room))
+				overlap = true;
+		}
+		if (!overlap)
+			locationFound = true;
+		else {
+			delete newRoom;
+			newRoom = nullptr;
+		}
+
+		numTries++;
+	}
+	if (locationFound) {
+		for (int y = topY; y <= bottomY; y++) {
+			for (int x = leftX; x <= rightX; x++) {
+				if (y == topY || y == bottomY || x == leftX || x == rightX)
+					_envMap[y][x].setTile(Tile::Wall);
+				else
+					_envMap[y][x].setTile(Tile::Floor);
+
+			}
+		}
+		newRoom->Generate();
+	}
+	return newRoom;
+}
+
+Room* Level::findCircleRoomLoc()
+{
+	bool overlap = false;
+	bool locationFound = false;
+	int numTries = 0;
+	int roomRadius = 0;
+	int centerX = 0, centerY = 0;
+	int leftX = 0, rightX = 0, topY = 0, bottomY = 0;
+
+	Room* newRoom = nullptr;
+
+	while (!locationFound && numTries < 150) {
+		roomRadius = GENERATOR.randNum(Room::minRoomRadius, Room::maxRoomRadius);
+		centerX = GENERATOR.randNum(roomRadius + 1, _width - roomRadius);
+		centerY = GENERATOR.randNum(roomRadius + 1, _height - roomRadius);
+
+		leftX = centerX - roomRadius;
+		topY = centerY - roomRadius;
+		rightX = leftX + roomRadius;
+		bottomY = topY + roomRadius;
+
+		newRoom = new Room(centerX, centerY, roomRadius);
+
+		for (auto& room : _rooms) {
+			if (newRoom->Intersect(*room))
+				overlap = true;
+		}
+		if (!overlap)
+			locationFound = true;
+		else {
+			delete newRoom;
+			newRoom = nullptr;
+		}
+
+		numTries++;
+	}
+	if (locationFound) {
+		for (int y = topY; y <= bottomY; y++) {
+			for (int x = leftX; x <= rightX; x++) {
+				double distance = circleDistance(x, y, centerX, centerY);
+				if (distance > roomRadius - 0.5 && distance < roomRadius + 0.5)
+					_envMap[y][x].setTile(Tile::Wall);
+				else if (distance < roomRadius - 0.5)
+					_envMap[y][x].setTile(Tile::Floor);
+				else
+					_envMap[y][x].setTile(Tile::Uninitialized);
+
+			}
+		}
+		newRoom->Generate();
+	}
+	return newRoom;
+}
+
+std::vector<std::tuple<int, int>> Level::getHallwayPath(std::tuple<int, int> startPos, std::tuple<int, int> endPos)
+{
+	int startX = std::get<0>(startPos);
+	int startY = std::get<1>(startPos);
+	int endX = std::get<0>(endPos);
+	int endY = std::get<1>(endPos);
+	int cornerX, cornerY;
+	if (GENERATOR.randNum(1, 2 + 1) == 1) {
+		cornerX = endX;
+		cornerY = startY;
+	}
+	else {
+		cornerX = startX;
+		cornerY = endY;
+	}
+	std::vector<std::tuple<int, int>> coords;
+	for (auto& tuple : bresenham(startX, startY, cornerX, cornerY))
+		coords.push_back(tuple);
+	for (auto& tuple : bresenham(cornerX, cornerY, endX, endY))
+		coords.push_back(tuple);
+
+	return coords;
+}
+
+void Level::generateRooms()
+{
+	std::cout << "\t\t\t\tGenerating Map...\n";
+
+	bool overlap = true;
+
+	while (overlap) {
+		int numRooms = GENERATOR.randNum(minRooms, maxRooms);
+
+		for (int i = 0; i < numRooms; i++) {
+			Room* room = nullptr;
+			int roomProb = GENERATOR.randNum(1, 101);
+
+			if (roomProb <= 20)
+				room = findCircleRoomLoc();
+			else
+				room = findRectRoomLoc();
+
+			if (room != nullptr)
+				_rooms.push_back(std::move(room));
+			else {
+				_rooms.clear();
+
+				for (int y = 0; y < _height; y++) {
+					for (int x = 0; x < _width; x++) {
+						_envMap[y][x].setTile(Tile::Uninitialized);
+						_containerMap[y][x].setTile(Tile::Uninitialized);
+						_entityMap[y][x].setTile(Tile::Uninitialized);
+					}
+				}
+			}
+		}
+		if (_rooms.size() == numRooms)
+			overlap = false;
+	}
+}
+
+void Level::generateHallways()
+{
+	int maxHallways = (int)_rooms.size() * 2;
+	int numHallways = GENERATOR.randNum(maxHallways / 2, maxHallways + 1);
+	int numZero = (int)_rooms.size();
+
+	for (int hallNum = 0; hallNum < numHallways; hallNum++) {
+		for (auto& room : _rooms) {
+			if (room->getHallwayAmount() == 0) {
+				Room& room2 = *_rooms[GENERATOR.randNum(0, (int)_rooms.size())];
+				while (room == &room2 || room2.getHallwayAmount() == 2) 
+					room2 = *_rooms[GENERATOR.randNum(0, (int)_rooms.size())];
+
+				for (auto& tuple : getHallwayPath(room->Center(), room2.Center())) 
+					_envMap[std::get<1>(tuple)][std::get<0>(tuple)].setTile(Tile::Floor);
+				
+				numZero -= (room2.getHallwayAmount() == 0) ? 2 : 1;
+
+				room->incrementNumHallways();
+				room2.incrementNumHallways();
+				break;
+			}
+			else if (room->getHallwayAmount() == 1 && numZero == 0) {
+				Room& room2 = *_rooms[GENERATOR.randNum(0, (int)_rooms.size())];
+
+				while(room == &room2 || room2.getHallwayAmount() == 2)
+					room2 = *_rooms[GENERATOR.randNum(0, (int)_rooms.size())];
+
+				for (auto& tuple : getHallwayPath(room->Center(), room2.Center()))
+					_envMap[std::get<1>(tuple)][std::get<0>(tuple)].setTile(Tile::Floor);
+
+				room->incrementNumHallways();
+				room2.incrementNumHallways();
+				break;
+
+			}
+		}
+	}
+
+	placeHallwayWalls();
+}
+
+void Level::placeHallwayWalls()
+{
+	char tile, tileLeft, tileRight, tileUp, tileDown;
+	for (int y = 0; y < _height; y++) {
+		for (int x = 0; x < _width; x++) {
+			tile = _envMap[y][x].Char();
+
+			if (tile == Tile::Floor) {
+				tileLeft = _envMap[y][x - 1].Char();
+				tileRight = _envMap[y][x + 1].Char();
+				tileUp = _envMap[y - 1][x].Char();
+				tileDown = _envMap[y + 1][x].Char();
+
+				if (tileLeft == Tile::Uninitialized)
+					_envMap[y][x - 1].setTile(Tile::Wall);
+				if (tileRight == Tile::Uninitialized)
+					_envMap[y][x + 1].setTile(Tile::Wall);
+				if (tileUp == Tile::Uninitialized)
+					_envMap[y - 1][x].setTile(Tile::Wall);
+				if (tileDown == Tile::Uninitialized)
+					_envMap[y + 1][x].setTile(Tile::Wall);
+			}
+		}
+	}
+}
+
+void Level::generateEnemies()
+{
+	for (int i = 0; i < _rooms.size(); i++) {
+		Room& room = *_rooms[i];
+		int numEnemies = 0;
+		if (!room.isExit() && !room.isPlayerStart()) {
+			if (room.Size() == RoomSize::Small)
+				numEnemies = 1;
+			else
+				numEnemies = GENERATOR.randNum(2, 4);
+
+			auto possibleEnemies = LevelList::getEnemyLists(room.Hardness());
+
+			for (int enem = 0; enem < numEnemies; enem++) {
+				int enemyX = 0, enemyY = 0;
+
+				if (room.Shape() == RoomShape::Rectangle) {
+					enemyX = GENERATOR.randNum(room.startX() + 1, room.endX());
+					enemyY = GENERATOR.randNum(room.startY() + 1, room.endY());
+				}
+				else if (room.Shape() == RoomShape::Circle) {
+					bool found = false;
+
+					while (!found) {
+						auto center = room.Center();
+						enemyX = GENERATOR.randNum(std::get<0>(center) - room.Radius() + 1, std::get<0>(center) + room.Radius());
+						enemyY = GENERATOR.randNum(std::get<1>(center) - room.Radius() + 1, std::get<1>(center) + room.Radius());
+						double distance = circleDistance(enemyX, enemyY, std::get<0>(center), std::get<1>(center));
+						found = (distance < room.Radius() - 0.5) ? true : false;
+					}
+				}
+				char enemyTile = GENERATOR.Choice<char>(possibleEnemies.data(), (int)possibleEnemies.size());
+				_entityMap[enemyY][enemyX] = Enemy(enemyTile, enemyX, enemyY);
+			}
+		}
+		else if (room.isPlayerStart())
+			room.setHardness(RoomHardness::Empty);
+		
+		else if (room.isExit()) {
+			room.setHardness(RoomHardness::Boss);
+			auto possibleEnemies = LevelList::getEnemyLists(room.Hardness());
+			int enemyX, enemyY;
+			if (room.Shape() == RoomShape::Rectangle) {
+				enemyX = GENERATOR.randNum(room.startX() + 1, room.endX());
+				enemyY = GENERATOR.randNum(room.startY() + 1, room.endY());
+			}
+			else if (room.Shape() == RoomShape::Circle) {
+				auto center = room.Center();
+				enemyX = GENERATOR.randNum(std::get<0>(center) - room.Radius() + 1, std::get<0>(center) + room.Radius());
+				enemyY = GENERATOR.randNum(std::get<1>(center) - room.Radius() + 1, std::get<1>(center) + room.Radius());
+			}
+			char enemyTile = GENERATOR.Choice<char>(possibleEnemies.data(), (int)possibleEnemies.size());
+			_entityMap[enemyY][enemyX] = Enemy(enemyTile, enemyX, enemyY);
+		}
+	}
+}
+
+void Level::placePlayer(Player& player)
+{
+	Room& room = *_rooms[GENERATOR.randNum(0, (int)_rooms.size())];
+	auto center = room.Center();
+
+	while (_envMap[std::get<1>(center)][std::get<0>(center)].Char() != Tile::Floor) {
+		room = *_rooms[GENERATOR.randNum(0, (int)_rooms.size())];
+		center = room.Center();
+	}
+
+	room.setPlayerStart();
+	player.setX(std::get<0>(center));
+	player.setY(std::get<1>(center));
+	player.setCurrentRoom(room);
+	_startRoom = &room;
+	_entityMap[std::get<1>(center)][std::get<0>(center)] = player;
+}
+
+void Level::placeExit()
+{
+	std::vector<std::tuple<int,double>> distances;
+	Room* startRoom = nullptr;
+
+	if (_startRoom == nullptr) {
+		for (size_t i = 0; i < _rooms.size(); i++) {
+			if (_rooms[i]->isPlayerStart())
+				_startRoom = _rooms[i];
+		}
+	}
+	
+	auto startCenter = _startRoom->Center();
+
+	for (size_t i = 0; i < _rooms.size(); i++) {
+		if (!_rooms[i]->isPlayerStart()) {
+			std::tuple<int, int> roomCenter = _rooms[i]->Center();
+			distances.emplace_back(i, circleDistance(std::get<0>(startCenter), std::get<1>(startCenter), std::get<0>(roomCenter), std::get<1>(roomCenter)));
+		}
+	}
+	double maxDistance = 0.0;
+	int farthestRoomIndex = 0;
+
+	for (auto& tuple : distances) {
+		if (std::get<1>(tuple) > maxDistance) {
+			maxDistance = std::get<1>(tuple);
+			farthestRoomIndex = std::get<0>(tuple);
+		}
+	}
+
+	Room& farthestRoom = *_rooms[farthestRoomIndex];
+	farthestRoom.setLevelExit();
+	_exitRoom = &farthestRoom;
+	auto center = _exitRoom->Center();
+	_envMap[std::get<1>(center)][std::get<0>(center)].setTile(Tile::Stair_Up);
+
+}
+
+void Level::generateContainers()
+{
+	int numRooms = (int)_rooms.size();
+	int numContainers = numRooms;
+
+	for (auto& room : _rooms) {
+		if (room->isPlayerStart() || room->isExit()) {
+			auto center = room->Center();
+			auto chestPos = center;
+
+			if (room->Shape() == RoomShape::Rectangle) {
+				while (std::get<0>(chestPos) == std::get<0>(center) && std::get<1>(chestPos) == std::get<1>(center)) {
+					std::get<0>(chestPos) = GENERATOR.randNum(room->startX() + 1, room->endX());
+					std::get<1>(chestPos) = GENERATOR.randNum(room->startY() + 1, room->endY());
+				}
+			}
+			else if (room->Shape() == RoomShape::Circle) {
+				while (std::get<0>(chestPos) == std::get<0>(center) && std::get<1>(chestPos) == std::get<1>(center)) {
+					std::get<0>(chestPos) = GENERATOR.randNum(std::get<0>(center) - room->Radius() + 1, std::get<0>(center) + room->Radius());
+					std::get<1>(chestPos) = GENERATOR.randNum(std::get<1>(center) - room->Radius() + 1, std::get<1>(center) + room->Radius());
+				}
+			}
+
+			Container chest(Tile::Chest, std::get<0>(chestPos), std::get<1>(chestPos), room);
+			(room->isPlayerStart()) ? chest.addItem(Potion(HEALING, MINOR)) : chest.generateInventory();
+			room->incrementNumHallways();
+			_containerMap[std::get<1>(chestPos)][std::get<0>(chestPos)] = chest;
+		}
+
+	}
+
+	for (int i = 0; i < (numContainers - 2); i++) {
+		Room& room = *_rooms[GENERATOR.randNum(0, (int)_rooms.size())];
+
+		while (room.isPlayerStart() || room.isExit() || room.getContainerAmount() > 0)
+			room = *_rooms[GENERATOR.randNum(0, (int)_rooms.size())];
+
+		int chestX, chestY;
+
+		if (room.Shape() == RoomShape::Rectangle) {
+			chestX = GENERATOR.randNum(room.startX() + 1, room.endX());
+			chestY = GENERATOR.randNum(room.startY() + 1, room.endY());
+		}
+		else if (room.Shape() == RoomShape::Circle) {
+			chestX = GENERATOR.randNum(room.startX() + 1, room.endX());
+			chestY = GENERATOR.randNum(room.startY() + 1, room.endY());
+
+			while (circleDistance(chestX, chestY, std::get<0>(room.Center()), std::get<1>(room.Center())) > room.Radius() - 0.5) {
+
+			}
+		}
 	}
 }

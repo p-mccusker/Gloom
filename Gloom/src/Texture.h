@@ -1,7 +1,6 @@
 #ifndef TEXTURE_H
 #define TEXTURE_H
 
-#include "def.h"
 #include "Renderer.h"
 
 class Texture

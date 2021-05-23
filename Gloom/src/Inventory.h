@@ -8,7 +8,7 @@ enum class InventoryOwnerType { Uninitialized, Entity, Container };
 class Inventory
 {
 public:
-	Inventory() { _owner = nullptr; }
+	Inventory();
 	Inventory(InventoryOwnerType ownerType , void* owner = nullptr);
 	~Inventory() { }
 
@@ -17,9 +17,9 @@ public:
 	std::tuple<InventoryOwnerType, void*> ownerAndType() { return std::tuple<InventoryOwnerType, void*>(_ownerType, _owner); }
 
 
-	void addItem(Weapon* weapon);
-	void addItem(Armor* armor);
-	void addItem(Potion* potion);
+	void addItem(Weapon weapon);
+	void addItem(Armor armor);
+	void addItem(Potion potion);
 
 	void removeItem(Weapon& weapon);
 	void removeItem(Armor& weapon);
@@ -38,4 +38,4 @@ private:
 	InventoryOwnerType _ownerType;
 };
 
-#endif
+#endif 

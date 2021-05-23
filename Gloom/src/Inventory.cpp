@@ -1,24 +1,32 @@
 #include "Inventory.h"
 
+Inventory::Inventory()
+{
+	_owner = nullptr;
+	_ownerType = InventoryOwnerType::Uninitialized;
+
+}
+
+
 Inventory::Inventory(InventoryOwnerType ownerType, void* owner)
 {
 	_owner = owner;
 	_ownerType = ownerType;
 }
 
-void Inventory::addItem(Weapon* weapon)
+void Inventory::addItem(Weapon weapon)
 {
-	_weapons.push_back(std::move(*weapon));
+	_weapons.push_back(weapon);
 }
 
-void Inventory::addItem(Armor* armor)
+void Inventory::addItem(Armor armor)
 {
-	_armor.push_back(std::move(*armor));
+	_armor.push_back(armor);
 }
 
-void Inventory::addItem(Potion* potion)
+void Inventory::addItem(Potion potion)
 {
-	_potions.push_back(std::move(*potion));
+	_potions.push_back(potion);
 }
 
 void Inventory::removeItem(Weapon& weapon)

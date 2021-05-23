@@ -2,22 +2,16 @@
 
 Tile::Tile(const int& x, const int& y, const char& tile)
 {
-    _x = x;
-    _y = y;
-    _char = tile;
+	_x = x;
+	_y = y;
+	_char = tile;
 }
 
 Tile::~Tile()
 {
 
 }
-
-EnvTile::EnvTile(const int& x, const int& y, const char& tile)
-	:Tile(x, y, tile)
-{
-
-}
-
+/// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Entity::Entity(const char& tile, const int& x, const int& y, const std::string& name, const int& hp, 
 			   const int& atk, const int& def, const int& lvl, const int& xp, const int& viewDist)
 	:Tile(x, y, tile)
@@ -76,7 +70,7 @@ void Entity::setCurrentHealth(const int& currHP)
 void Entity::Unequip(Armor& armor)
 {
 	//chestplate starts at 8
-	int itemIndex = (int)armor.armorType() - 8;
+	int itemIndex = (int)(armor.armorType()) - 8;
 	if (itemIndex > 0) {
 		Armor* oldItem = _armorSlots[itemIndex];
 		if (*oldItem == armor) {
@@ -141,19 +135,19 @@ void Entity::Equip(Potion& potion)
 	_inv->removeItem(potion);
 }
 
-void Entity::addItem(Armor& armor)
+void Entity::addItem(Armor armor)
 {
-	_inv->addItem(&armor);
+	_inv->addItem(armor);
 }
 
-void Entity::addItem(Weapon& weapon)
+void Entity::addItem(Weapon weapon)
 {
-	_inv->addItem(&weapon);
+	_inv->addItem(weapon);
 }
 
-void Entity::addItem(Potion& potion)
+void Entity::addItem(Potion potion)
 {
-	_inv->addItem(&potion);
+	_inv->addItem(potion);
 }
 
 std::vector<Armor>& Entity::getArmor()
@@ -170,7 +164,7 @@ std::vector<Potion>& Entity::getPotions()
 {
 	return _inv->getPotions();
 }
-
+/// ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 Enemy::Enemy(const char& tile, const int& x, const int& y)
 
 {
@@ -233,7 +227,7 @@ Enemy::Enemy(const char& tile, const int& x, const int& y)
 	}
 	_viewDist = 5;
 }
-
+// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Player::Player(const int& x, const int& y)
 	:Entity(Tile::Player, x, y, "Player", 100, 1, 0, 1, 0, 5)
 {

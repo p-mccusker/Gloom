@@ -1,7 +1,6 @@
 #ifndef TILE_H
 #define TILE_H
 
-#include "def.h"
 #include "Texture.h"
 #include "MsgQueue.h"
 #include "Inventory.h"
@@ -12,59 +11,46 @@
 class Tile
 {
 public:
-    Tile(const int& x=0, const int& y=0, const char& tile='?');
-    ~Tile();
+	Tile(const int& x=0, const int& y=0, const char& tile='?');
+	~Tile();
 
-    //const Texture* getTexture() const { return _texture; }
-    //TileType Kind() const { return _type; }
-    int X() const { return _x; }
-    int Y() const { return _y; }
-    char Char() const { return _char; }
+	//const Texture* getTexture() const { return _texture; }
+	//TileType Kind() const { return _type; }
+	int X() const { return _x; }
+	int Y() const { return _y; }
+	char Char() const { return _char; }
 
-    void setX(const int& x) { _x = x; }
-    void setY(const int& y) { _y = y; }
+	void setX(const int& x) { _x = x; }
+	void setY(const int& y) { _y = y; }
 	void setTile(const char& tile) { _char = tile; }
 
-    bool isTile(const char& tile) { return _char == tile; }
+	bool isTile(const char& tile) { return _char == tile; }
 
-    static const char Uninitialized = '?';
-    static const char Floor = '.';
-    static const char Wall = '#';
-    static const char Stair_Up = '<';
-    static const char Stair_Down = '>';
-    static const char Space = ' ';
-    static const char Chest = '$';
-    static const char Player = '@';
-    static const char Rat = 'r';
-    static const char Rogue = 'R';
-    static const char Goblin = 'g';
-    static const char Ogre = 'O';
-    static const char Dragon = 'D';
+	static const char Uninitialized = '?';
+	static const char Floor = '.';
+	static const char Wall = '#';
+	static const char Stair_Up = '<';
+	static const char Stair_Down = '>';
+	static const char Space = ' ';
+	static const char Chest = '$';
+	static const char Player = '@';
+	static const char Rat = 'r';
+	static const char Rogue = 'R';
+	static const char Goblin = 'g';
+	static const char Ogre = 'O';
+	static const char Dragon = 'D';
 
 protected:
-    //Texture* _texture;
-    //TileType _type;
-    int _x, _y;
-    char _char;
-    //SDL_Rect _box;
-};
-
-class EnvTile : protected Tile
-{
-public:
-    EnvTile(const int& x = 0, const int& y = 0, const char& tile = '?');
-    ~EnvTile() { }
-
-    //ENV Type() const { return _type; }
-
-
-private:
-
+	//Texture* _texture;
+	//TileType _type;
+	int _x, _y;
+	char _char;
+	//SDL_Rect _box;
 };
 
 extern random GENERATOR;
 
-class Entity : protected Tile
+class Entity : public Tile
 {
 public:
 	Entity() { }
@@ -81,9 +67,9 @@ public:
 	void Equip(Armor& armor);
 	void Equip(Potion& potion);
 
-	void addItem(Armor& armor);
-	void addItem(Weapon& weapon);
-	void addItem(Potion& potion);
+	void addItem(Armor armor);
+	void addItem(Weapon weapon);
+	void addItem(Potion potion);
 
 	std::vector<Armor>& getArmor();
 	std::vector<Weapon>& getWeapons();
@@ -108,6 +94,7 @@ public:
 	void setXP(const int& xp) { _xp = xp; }
 	void setViewDistance(const int& dist) { _viewDist = dist; }
 	void setName(const std::string& name) { _name = name; }
+	void setCurrentRoom(Room& room) { _currentRoom = &room; }
 
 	static int const Slot_Chest = 0;
 	static int const Slot_Shoulders = 1;
@@ -127,10 +114,11 @@ protected:
 	Inventory* _inv;
 	Armor* _armorSlots[Slot_Armor_Total] = { nullptr };
 	Weapon* _weaponSlots[2] = { nullptr };
+	Room* _currentRoom = nullptr;
 };
 
 class Enemy :
-	protected Entity
+	public Entity
 {
 public:
 	Enemy(const char& tile, const int& x, const int& y);
@@ -141,12 +129,12 @@ private:
 };
 
 class Player :
-	protected Entity
+	public Entity
 {
 public:
 	Player(const int& x = 0, const int& y = 0);
 	~Player() {}
 private:
-	Room* _currentRoom;
+
 };
 #endif // TILE_H
