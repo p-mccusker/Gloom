@@ -18,6 +18,8 @@
 #include <tuple>
 #include <cmath>
 #include <ctime>
+#include <memory>
+
 
 struct Color {
 	Color(Uint8 red, Uint8 green, Uint8 blue, Uint8 alpha) { r = red; g = green; b = blue; a = alpha; }

@@ -66,17 +66,7 @@ int main(int argc, char* argv[])
 	*/
 
 	Game* game = new Game(100, 40, "C:\\Users\\games\\source\\repos\\Gloom\\Gloom\\res\\taffer.png");
-	//game->Run();
-
-	//std::vector<int> options = { 0,1,2,3,4,5,6 };
-
-	//for (int i = 0; i < 70; i++) 
-	//	std::cout << "Choice: " << GENERATOR.Choice<int>(options.data(), 7) << '\n';
-		//std::cout << "Num: " << GENERATOR.randNum(0,6) << '\n';
-		//std::cout << "Num: " << GENERATOR.Lehmer32() % 64 << '\n';
-	//}
-	
-	std::cout << 5 - 1, 2;
+	game->Run();
 
 	delete game;
 

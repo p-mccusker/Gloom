@@ -2,7 +2,7 @@
 
 Inventory::Inventory()
 {
-	_owner = nullptr;
+	//_owner = nullptr;
 	_ownerType = InventoryOwnerType::Uninitialized;
 
 }
@@ -10,7 +10,7 @@ Inventory::Inventory()
 
 Inventory::Inventory(InventoryOwnerType ownerType, void* owner)
 {
-	_owner = owner;
+	//_owner = owner;
 	_ownerType = ownerType;
 }
 

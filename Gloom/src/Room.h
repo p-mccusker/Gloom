@@ -6,7 +6,7 @@
 extern random GENERATOR;
 
 enum class RoomSize { Small, Large };
-enum class RoomShape { Rectangle, Circle };
+enum class RoomShape { Unititialized, Rectangle, Circle };
 enum RoomHardness { Empty, Level1, Level2, Level3, Boss, TotalRooms};
 
 int hardnessToInt(RoomHardness hardness);
@@ -14,7 +14,8 @@ int hardnessToInt(RoomHardness hardness);
 class Room
 {
 public:
-	Room();
+	Room() { }
+	Room(const Room& other);
 	Room(const int& startX , const int& startY, const int& width, const int& height);
 	Room(const int& centerX, const int& centerY, const int& radius);
 	~Room() { }
@@ -32,7 +33,7 @@ public:
 	int endY() { return _endY; }
 	bool isPlayerStart() { return _playerStart; }
 	bool isExit() { return _levelExit; }
-	bool Intersect(const Room& other);
+	bool Intersect(Room& other);
 	bool isInRoom(const int& x, const int& y);
 
 	void Generate();
@@ -51,7 +52,7 @@ public:
 protected:
 	RoomHardness _hardness = RoomHardness::Empty;
 	RoomSize _size = RoomSize::Small;
-	RoomShape _shape = RoomShape::Rectangle;
+	RoomShape _shape = RoomShape::Unititialized;
 	int _numHallways = 0;
 	int _numContainers = 0;
 	int _startX = 0,

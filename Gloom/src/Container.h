@@ -3,7 +3,7 @@
 
 #include "LevelList.h"
 
-enum class Action { Use, Open };
+enum class Action { Uninitialized, Use, Open };
 
 enum class IObjectType { Container, Exit};
 
@@ -23,7 +23,7 @@ protected:
 class Container : public Tile
 {
 public:
-	Container(char tile, const int& x, const int& y, Room* room = nullptr);
+	Container(const char& tile, const int& x, const int& y, Room* room=nullptr);
 	~Container();
 
 	void addItem(Armor armor) { _inv->addItem(armor); }
@@ -34,14 +34,15 @@ public:
 	std::vector<Potion>& getPotions() { return _inv->getPotions(); }
 	std::vector<Weapon>& getWeapons() { return _inv->getWeapons(); }
 	ItemType getItemType(const int& itemType);
+	Room& getRoom() { return *_room; }
 
 	void generateItems(std::vector<int>& possibleItems, const int& numItems);
 	void generateInventory();
-
 private:
-	Action _action;
-	Inventory* _inv;
+	Action _action = Action::Uninitialized;
+	std::unique_ptr<Inventory> _inv = nullptr;
 	Room* _room;
+	
 };
 
 class Exit {};

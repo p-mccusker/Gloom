@@ -23,8 +23,24 @@ int hardnessToInt(RoomHardness hardness)
 	}
 }
 
-Room::Room()
+Room::Room(const Room& other)
 {
+	_hardness = other._hardness;
+	_size = other._size;
+	_shape = other._shape;
+	_numHallways = other._numHallways;
+	_numContainers = other._numContainers;
+	_startX = other._startX;
+	_startY = other._startY;
+	_centerX = other._centerX;
+	_centerY = other._centerY;
+	_endX = other._endX;
+	_endY = other._endY;
+	_width = other._width;
+	_height = other._height;
+	_radius = other._radius;
+	_playerStart = other._playerStart;
+	_levelExit = other._levelExit;
 }
 
 Room::Room(const int& startX, const int& startY, const int& width, const int& height) 
@@ -50,7 +66,7 @@ Room::Room(const int& centerX, const int& centerY, const int& radius)
 	_width = 2 * _radius;
 }
 
-bool Room::Intersect(const Room& other)
+bool Room::Intersect(Room& other)
 {
 	if (this->_shape == RoomShape::Rectangle && other._shape == RoomShape::Rectangle)
 		return _startX <= other._endX  && _endX >= other._startX 

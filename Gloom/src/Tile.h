@@ -6,16 +6,14 @@
 #include "Inventory.h"
 #include "Room.h"
 
-//enum TileType { UNINITIALIZED, SPACE, FLOOR, WALL, PLAYER, MONSTER, CONTAINER, EXIT};
-
 class Tile
 {
 public:
-	Tile(const int& x=0, const int& y=0, const char& tile='?');
+	Tile() { }
+	Tile(const char& tile, const int& x, const int& y);
 	~Tile();
 
 	//const Texture* getTexture() const { return _texture; }
-	//TileType Kind() const { return _type; }
 	int X() const { return _x; }
 	int Y() const { return _y; }
 	char Char() const { return _char; }
@@ -42,9 +40,8 @@ public:
 
 protected:
 	//Texture* _texture;
-	//TileType _type;
-	int _x, _y;
-	char _char;
+	int _x=0, _y=0;
+	char _char='?';
 	//SDL_Rect _box;
 };
 
@@ -53,10 +50,10 @@ extern random GENERATOR;
 class Entity : public Tile
 {
 public:
-	Entity() { }
+	Entity() { _currentRoom = nullptr; }
 	Entity(const char& tile, const int& x = 0, const int& y = 0, const std::string& name = "", const int& hp = 0,
 		const int& atk = 0, const int& def = 0, const int& lvl = 0, const int& xp = 0, const int& viewDist = 0);
-	~Entity() { delete _inv; _inv = nullptr; }
+	~Entity();
 	bool isAlive() { return _alive; }
 
 	std::tuple<int, int> Attack(Entity& defender, MsgQueue& log);
@@ -84,6 +81,7 @@ public:
 	int XP() { return _xp; }
 	int viewDistance() { return _viewDist; }
 	std::string Name() { return _name; }
+	Room& currentRoom() { return *_currentRoom; }
 
 	//Setters
 	void setAttack(const int& atk) { _attack = atk; }
@@ -112,9 +110,9 @@ protected:
 		_lvl, _xp, _viewDist;
 	bool _alive;
 	Inventory* _inv;
-	Armor* _armorSlots[Slot_Armor_Total] = { nullptr };
-	Weapon* _weaponSlots[2] = { nullptr };
-	Room* _currentRoom = nullptr;
+	std::array<Armor*, Slot_Armor_Total> _armorSlots = { nullptr };
+	std::array<Weapon*, 2> _weaponSlots = { nullptr };
+	Room* _currentRoom;
 };
 
 class Enemy :
@@ -123,7 +121,6 @@ class Enemy :
 public:
 	Enemy(const char& tile, const int& x, const int& y);
 	~Enemy() { }
-
 private:
 
 };

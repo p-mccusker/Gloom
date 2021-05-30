@@ -1,6 +1,6 @@
 #include "Tile.h"
 
-Tile::Tile(const int& x, const int& y, const char& tile)
+Tile::Tile(const char& tile, const int& x, const int& y)
 {
 	_x = x;
 	_y = y;
@@ -14,7 +14,7 @@ Tile::~Tile()
 /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Entity::Entity(const char& tile, const int& x, const int& y, const std::string& name, const int& hp, 
 			   const int& atk, const int& def, const int& lvl, const int& xp, const int& viewDist)
-	:Tile(x, y, tile)
+	:Tile(tile, x, y)
 {
 	_name = name;
 	_currentHp = hp;
@@ -30,6 +30,18 @@ Entity::Entity(const char& tile, const int& x, const int& y, const std::string& 
 		slot = new Armor(CHESTPLATE);
 	for (auto weapSlot : _weaponSlots)
 		weapSlot = new Weapon(WEAPON_NULL);
+
+}
+
+Entity::~Entity()
+{
+	for (auto armor : _armorSlots)
+		armor = nullptr;
+	for (auto weapon : _weaponSlots)
+		weapon = nullptr;
+
+	delete _inv; 
+	_inv = nullptr;
 
 }
 
@@ -166,7 +178,7 @@ std::vector<Potion>& Entity::getPotions()
 }
 /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 Enemy::Enemy(const char& tile, const int& x, const int& y)
-
+	:Entity()
 {
 	switch (tile) {
 	case Tile::Rat:

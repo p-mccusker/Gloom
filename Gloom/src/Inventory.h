@@ -10,11 +10,11 @@ class Inventory
 public:
 	Inventory();
 	Inventory(InventoryOwnerType ownerType , void* owner = nullptr);
-	~Inventory() { }
+	~Inventory() { }//delete _owner; _owner = nullptr; }
 
 	InventoryOwnerType ownerType() { return _ownerType; }
-	void* Owner() { return _owner; }
-	std::tuple<InventoryOwnerType, void*> ownerAndType() { return std::tuple<InventoryOwnerType, void*>(_ownerType, _owner); }
+	//void* Owner() { return _owner; }
+	//std::tuple<InventoryOwnerType, void*> ownerAndType() { return std::tuple<InventoryOwnerType, void*>(_ownerType, _owner); }
 
 
 	void addItem(Weapon weapon);
@@ -34,7 +34,7 @@ private:
 	std::vector<Armor> _armor;
 	std::vector<Weapon> _weapons;
 	std::vector<Potion> _potions;
-	void* _owner;
+	//void* _owner;
 	InventoryOwnerType _ownerType;
 };
 

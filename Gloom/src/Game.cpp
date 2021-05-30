@@ -2,14 +2,11 @@
 
 Game::Game(const int& width, const int& height, const std::string& tilesetPath)
 {
-	_log = new MsgQueue(15);
-	_level = new Level(mapWidth, mapHeight);
-
 	if (SDL_InitSubSystem(SDL_INIT_EVENTS) < 0 || SDL_InitSubSystem(SDL_INIT_VIDEO) < 0) {
 		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize SDL: %s", SDL_GetError());
 	}
 	else {
-		_renderer = new Renderer("Gloom", width, height, RENDERER::ACCELERATED);
+		_renderer = std::make_unique<Renderer>("Gloom", width, height, RENDERER::ACCELERATED);
 		_renderer->setDrawColor(BLACK);
 	}
 
@@ -17,31 +14,25 @@ Game::Game(const int& width, const int& height, const std::string& tilesetPath)
 		std::cerr << "Failed to initialize png support\n";
 
 	if (tilesetPath != "")
-		_tileset = new TileSet(tilesetPath, 20, 20);
+		_tileset = std::make_unique<TileSet>(tilesetPath, 20, 20);
 
 	getTileSetTexture();
+
+	_log = std::make_unique<MsgQueue>(15);
+	_level = std::make_unique<Level>(mapWidth, mapHeight);
+	_player = std::make_unique<Player>(0, 0);
 }
 
 Game::~Game()
 {
-	delete _renderer;
-	_renderer = nullptr;
-	delete _tileset;
-	_tileset = nullptr;
-	delete _level;
-	_level = nullptr;
-	delete _tileTexture;
-	_tileTexture = nullptr;
-	delete _log;
-	_log = nullptr;
 
 	SDL_QuitSubSystem(SDL_INIT_EVENTS);
 }
 
 void Game::Run()
 {
+	
 	bool quit = false;
-
 	SDL_Event e;
 	while (!quit) {
 		//Handle events on queue
@@ -66,9 +57,21 @@ void Game::Run()
 
 }
 
+void Game::waitForKey(const SDL_KeyCode& key)
+{
+	SDL_Event e;
+	bool quit = false;
+	while (!quit) {
+		while (SDL_PollEvent(&e) != 0) {
+			if (e.key.keysym.sym == key)
+				quit = true;
+		}
+	}
+}
+
 void Game::getTileSetTexture()
 {
 	SDL_Texture* tileTex = _renderer->getTextureFromSurface(_tileset->image);
-	_tileTexture = new Texture(tileTex);
+	_tileTexture = std::make_unique <Texture>(tileTex);
 }
 

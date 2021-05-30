@@ -2,20 +2,16 @@
 
 
 
-Container::Container(char tile, const int& x, const int& y, Room* room)
-	:Tile(x, y, Tile::Chest)
+Container::Container(const char& tile, const int& x, const int& y, Room* room)
+	:Tile(x, y, tile)
 {
 	_action = Action::Open;
-	_inv = new Inventory(InventoryOwnerType::Container, (void*)this);
-	_char = tile;
+	_inv = std::make_unique<Inventory>(InventoryOwnerType::Container, (void*)this);
 	_room = room;
 }
 
 Container::~Container()
 {
-	delete _inv;
-	_inv = nullptr;
-	delete _room;
 	_room = nullptr;
 }
 
@@ -103,7 +99,7 @@ void Container::generateInventory()
 	int choice = GENERATOR.randNum(1, 101);
 	int numPossibleItems = 0;
 
-	if (_room->Hardness() == RoomHardness::Empty) 
+	if (_room->Hardness() == RoomHardness::Empty)
 		if (choice > 30) 
 			numPossibleItems = 1;
 	else if (_room->Hardness() == RoomHardness::Level1)
