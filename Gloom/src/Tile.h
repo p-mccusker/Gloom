@@ -6,11 +6,14 @@
 #include "Inventory.h"
 #include "Room.h"
 
+//extern random GENERATOR;
+
 class Tile
 {
 public:
 	Tile() { }
 	Tile(const char& tile, const int& x, const int& y);
+	Tile(const Tile& other);
 	~Tile();
 
 	//const Texture* getTexture() const { return _texture; }
@@ -45,18 +48,17 @@ protected:
 	//SDL_Rect _box;
 };
 
-extern random GENERATOR;
-
 class Entity : public Tile
 {
 public:
 	Entity() { _currentRoom = nullptr; }
 	Entity(const char& tile, const int& x = 0, const int& y = 0, const std::string& name = "", const int& hp = 0,
 		const int& atk = 0, const int& def = 0, const int& lvl = 0, const int& xp = 0, const int& viewDist = 0);
+	Entity(const Entity& other);
 	~Entity();
 	bool isAlive() { return _alive; }
 
-	std::tuple<int, int> Attack(Entity& defender, MsgQueue& log);
+	Coord Attack(Entity& defender, MsgQueue& log);
 
 	void Unequip(Armor& armor);
 	void Unequip(Weapon& weapon);
@@ -77,10 +79,10 @@ public:
 	int Defense() { return _defense; }
 	int currentHealth() { return _currentHp; }
 	int totalHealth() { return _maxHp; }
-	int Level() { return _lvl; }
-	int XP() { return _xp; }
-	int viewDistance() { return _viewDist; }
-	std::string Name() { return _name; }
+	int Level() const { return _lvl; }
+	int XP() const { return _xp; }
+	int viewDistance() const { return _viewDist; }
+	std::string Name() const { return _name; }
 	Room& currentRoom() { return *_currentRoom; }
 
 	//Setters
@@ -92,7 +94,7 @@ public:
 	void setXP(const int& xp) { _xp = xp; }
 	void setViewDistance(const int& dist) { _viewDist = dist; }
 	void setName(const std::string& name) { _name = name; }
-	void setCurrentRoom(Room& room) { _currentRoom = &room; }
+	void setCurrentRoom(Room* room) { _currentRoom = room; }
 
 	static int const Slot_Chest = 0;
 	static int const Slot_Shoulders = 1;
@@ -109,7 +111,7 @@ protected:
 	int _attack, _defense, _currentHp, _maxHp,
 		_lvl, _xp, _viewDist;
 	bool _alive;
-	Inventory* _inv;
+	Inventory _inv;
 	std::array<Armor*, Slot_Armor_Total> _armorSlots = { nullptr };
 	std::array<Weapon*, 2> _weaponSlots = { nullptr };
 	Room* _currentRoom;
@@ -134,4 +136,6 @@ public:
 private:
 
 };
+
+
 #endif // TILE_H

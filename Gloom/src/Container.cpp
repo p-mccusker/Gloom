@@ -6,13 +6,22 @@ Container::Container(const char& tile, const int& x, const int& y, Room* room)
 	:Tile(x, y, tile)
 {
 	_action = Action::Open;
-	_inv = std::make_unique<Inventory>(InventoryOwnerType::Container, (void*)this);
+	_inv = Inventory(InventoryOwnerType::Container, (void*)this); //std::make_unique<Inventory>(InventoryOwnerType::Container, (void*)this);
 	_room = room;
 }
 
 Container::~Container()
 {
 	_room = nullptr;
+}
+
+Container::Container(const Container& other)
+{
+	_action = other._action;
+	//_inv.reset();
+	//_inv = std::make_unique<Inventory>(std::move(other._inv));
+	_inv = other._inv;
+	_room = std::move(other._room);
 }
 
 ItemType Container::getItemType(const int& itemType)
@@ -30,7 +39,7 @@ ItemType Container::getItemType(const int& itemType)
 void Container::generateItems(std::vector<int>& possibleItems, const int& numItems)
 {
 	for (int i = 0; i < numItems; i++) {
-		int itemChoice = GENERATOR.Choice<int>(possibleItems.data(), (int)possibleItems.size());
+		int itemChoice = GENERATOR.Choice<int>(possibleItems);
 
 		ItemType itemType = getItemType(itemChoice);
 
@@ -57,7 +66,6 @@ void Container::generateItems(std::vector<int>& possibleItems, const int& numIte
 					Potion randPotion(itemChoice, PotionMag::MAJOR);
 					addItem(randPotion);
 				}
-
 			}
 			else if (_room->Hardness() == RoomHardness::Level2) {
 				int prob = GENERATOR.randNum(1, 101);
@@ -69,7 +77,6 @@ void Container::generateItems(std::vector<int>& possibleItems, const int& numIte
 					Potion randPotion(itemChoice, PotionMag::MAJOR);
 					addItem(randPotion);
 				}
-
 			}
 			else if (_room->Hardness() == RoomHardness::Level3) {
 				int prob = GENERATOR.randNum(1, 101);
@@ -81,14 +88,12 @@ void Container::generateItems(std::vector<int>& possibleItems, const int& numIte
 					Potion randPotion(itemChoice, PotionMag::MAJOR);
 					addItem(randPotion);
 				}
-
 			}
 			else if (_room->Hardness() == RoomHardness::Boss) {
 				int prob = GENERATOR.randNum(1, 101);
 				Potion randPotion(itemChoice, PotionMag::MAJOR);
 				addItem(randPotion);
 			}
-
 		}
 	}
 }
@@ -115,4 +120,21 @@ void Container::generateInventory()
 			numPossibleItems = GENERATOR.randNum(2, 4);
 	
 	generateItems(possibleItems, numPossibleItems);
+}
+
+Container& Container::operator=(const Container& rhs)
+{
+	_action = rhs._action;
+	//_inv.reset();
+	_inv = rhs._inv; // std::make_unique<Inventory>(std::move(rhs._inv));
+	_room = rhs._room;
+
+	return *this;
+}
+
+bool Container::operator==(const Container& rhs) const
+{
+	return _action == rhs._action
+		&& _inv == rhs._inv
+		&& _room == rhs._room;
 }

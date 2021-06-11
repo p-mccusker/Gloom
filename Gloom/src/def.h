@@ -3,9 +3,11 @@
 #ifdef __linux__
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL_ttf.h>
 #elif _WIN32
 #include <SDL.h>
 #include <SDL_image.h>
+#include <SDL_ttf.h>
 #endif
 
 #include <map>
@@ -19,6 +21,7 @@
 #include <cmath>
 #include <ctime>
 #include <memory>
+#include <algorithm>
 
 
 struct Color {
@@ -40,11 +43,11 @@ enum TexIndex {
 	ARROR_UP_DOWN_BAR, ARROW_UP, ARROW_DOWN, ARROW_RIGHT, ARROW_LEFT, RETURN, ARROW_LEFT_RIGHT, SHORT_ARROW_UP,
 	SHORT_ARROW_DOWN,
 	//Row 3
-	EMPTY_2, EXCLAMTION, QUTOES_DOUBLE, POUND, DOLLAR, PERCENT, AMPERSTAND, QUTOE_SINGLE, PARENTHESIS_LEFT, PARENTHESIS_RIGHT,
+	EMPTY_2, EXCLAMTION, QUTOES_DOUBLE, POUND, DOLLAR, PERCENT, AMPERSTAND, QUOTE_SINGLE, PARENTHESIS_LEFT, PARENTHESIS_RIGHT,
 	ASTERISK, PLUS, COMMA, MINUS, PERIOD, SLASH_FORWARD,
 	//Row 4
-	ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, COLON, SEMICOLON, BIG_SHORT_ARROW_LEFT, EQUAL,
-	BIG_SHORT_ARROW_RIGHT, QUESTION,
+	ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, COLON, SEMICOLON, LESS_THAN, EQUAL,
+	GREATER_THAN, QUESTION,
 	//Row 5
 	AT, A_UP, B_UP, C_UP, D_UP, E_UP, F_UP, G_UP, H_UP, I_UP, J_UP, K_UP, L_UP, M_UP, N_UP, O_UP,
 	//Row 6
@@ -58,9 +61,45 @@ enum TexIndex {
 
 };
 
-double circleDistance(const double& x0, const double& y0, const double& x1, const double& y1);
+inline double circleDistance(const double& x0, const double& y0, const double& x1, const double& y1) {
+	return sqrt(pow((x1 - x0), 2) + pow((y1 - y0), 2));
+}
 
-std::vector<std::tuple<int, int>>  bresenham(int x1, int y1, int x2, int y2);
+template<typename T>
+bool Contains(const std::vector<T>& arr, const T& item) {
+
+	for (int i = 0; i < arr.size(); i++) {
+		if (arr[i] == item)
+			return true;
+	}
+	return false;
+}
+
+struct Coord {
+	int x, y;
+	bool operator==(const Coord& coord) const { return x == coord.x && y == coord.y; }
+};
+
+inline std::vector<Coord>  bresenham(int x1, int y1, int x2, int y2) {
+	std::vector<Coord> coords;
+	int m_new = 2 * (y2 - y1);
+	int slope_error_new = m_new - (x2 - x1);
+	for (int x = x1, y = y1; x <= x2; x++)
+	{
+		// Add slope to increment angle formed
+		slope_error_new += m_new;
+
+		// Slope error reached limit, time to
+		// increment y and update slope error.
+		if (slope_error_new >= 0)
+		{
+			y++;
+			slope_error_new -= 2 * (x2 - x1);
+		}
+		coords.emplace_back(x, y);
+	}
+	return coords;
+}
 
 struct random {
 	time_t timer;
@@ -84,17 +123,20 @@ struct random {
 	}
 
 	int randNum(const int& start, const int& end) {
-		return start + (Lehmer32() % (end - start));
+		if (start != end)
+			return start + (Lehmer32() % (end - start));
+		else
+			return start;
 	}
 
 	template<typename ArrayType>
-	ArrayType Choice(ArrayType* arr, const unsigned int& size) {
-		int index = randNum(0, size);
-		
-		auto item = (arr + index);
-		return *item;
+	ArrayType& Choice(std::vector<ArrayType>& arr) {
+		int index = randNum(0, arr.size());
+		return arr.at(index);
 	}
 };
+
+inline random GENERATOR;
 
 
 

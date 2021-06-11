@@ -3,9 +3,13 @@
 
 #include "Container.h"
 
-using EnvMap = std::vector<std::vector<std::unique_ptr<Tile>>>;
-using ContainerMap = std::vector<std::vector<std::unique_ptr<Container>>>;
-using EntityMap = std::vector<std::vector<std::unique_ptr<Entity>>>;
+enum class Map { Tile, Entity, Container };
+enum class Direction { Up, Down, Left, Right };
+
+
+using EnvMap = std::vector<std::vector<Tile>>;
+using ContainerMap = std::vector<std::vector<Container>>;
+using EntityMap = std::vector<std::vector<Entity>>;
 
 class Level
 {
@@ -14,15 +18,26 @@ public:
     ~Level();
 
     void Generate(Player& player);
+    Tile& getTile(const int& x, const int& y);
+    Entity& getEntity(const int& x, const int& y);
+    Container& getContainer(const int& x, const int& y);
+    std::vector<Room>& getRooms() { return _rooms; }
+    int Width() { return _width; }
+    int Height() { return _height; }
 
+    void reset(const Map& map, const int& x, const int& y);
 
-    static const int maxRooms = 12;
-    static const int minRooms = 11;
+    void swap(Tile& t1, const Direction& dir);
+    void swap(Entity& t1,const Direction& dir);
+    void swap(Container& t1, const Direction& dir);
+
+    static const int maxRooms = 11;
+    static const int minRooms = 8;
 
 private:
     Room findRectRoomLoc();
     Room findCircleRoomLoc();
-    std::vector<std::tuple<int, int>> getHallwayPath(std::tuple<int, int> startPos, std::tuple<int, int> endPos);
+    std::vector<Coord> getHallwayPath(const Coord& start, const Coord& end);
 
     void generateRooms();
     void generateHallways();

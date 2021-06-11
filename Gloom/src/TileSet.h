@@ -11,6 +11,7 @@ public:
     ~TileSet();
 
     SDL_Rect& GetTileRect(const TexIndex& index) { return textureRects[index]; }
+    SDL_Rect& GetTileRect(const char& tile);
     void Load(const std::string& path, const int& width, const int& height);
     void Free();
 

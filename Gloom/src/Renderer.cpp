@@ -11,12 +11,14 @@ Renderer::Renderer(const std::string& title, const int& width, const int& height
 		_renderType = SDL_RENDERER_ACCELERATED;
 	else if (renderType == RENDERER::SOFTWARE)
 		_renderType = SDL_RENDERER_SOFTWARE;
+
 }
 
 Renderer::~Renderer()
 {
 	SDL_DestroyRenderer(_gameRenderer);
 	SDL_DestroyWindow(_gameWin);
+	TTF_CloseFont(_font);
 	_gameRenderer = nullptr;
 	_gameWin = nullptr;
 }
@@ -53,6 +55,27 @@ void Renderer::setDrawBlendMode(SDL_BlendMode blendMode)
 	SDL_SetRenderDrawBlendMode(_gameRenderer, blendMode);
 }
 
+void Renderer::setFont(const char* font, const int& size)
+{
+	TTF_CloseFont(_font);
+	_font = TTF_OpenFont(font, size);
+	_fontName = font;
+	_fontSize = size;
+}
+
+void Renderer::setDefaultFont()
+{
+	TTF_CloseFont(_font);
+	_font = TTF_OpenFont(defaultFont, defaultFontSize);
+}
+
+void Renderer::setFontSize(const int& size)
+{
+	TTF_CloseFont(_font);
+	_font = TTF_OpenFont(_fontName.c_str(), size);
+	_fontSize = size;
+}
+
 void Renderer::DrawRect(const SDL_Rect* rect)
 {
 	SDL_RenderDrawRect(_gameRenderer, rect);
@@ -81,4 +104,44 @@ void Renderer::Update()
 void Renderer::Clear()
 {
 	SDL_RenderClear(_gameRenderer);
+}
+
+void Renderer::DrawText(Message& msg, SDL_Window* win)
+{
+	if (win == nullptr)
+		win = _gameWin;
+	std::string oldFont = "";
+	int oldFontSize = 0;
+	if (_fontName != msg.font || _fontSize != msg.size) {
+		oldFont = _fontName;
+		oldFontSize = _fontSize;
+		TTF_CloseFont(_font);
+		_font = TTF_OpenFont(msg.font.c_str(), msg.size);
+	}
+	if (msg.textSurface == NULL)
+		msg.textSurface = TTF_RenderText_Solid(_font, msg.text.c_str(), msg.color);
+
+	SDL_Texture* msgTexture = SDL_CreateTextureFromSurface(_gameRenderer, msg.textSurface);
+
+	this->Draw(msgTexture, &msg.srcRect, &msg.destRect);
+	SDL_DestroyTexture(msgTexture);
+
+	if (oldFont != "" || oldFontSize != 0) {
+		TTF_CloseFont(_font);
+		TTF_OpenFont(oldFont.c_str(), oldFontSize);
+	}
+}
+
+Message::Message(const std::string& msg, const int& x, const int& y, const std::string& fontName, const int& fontSize, const SDL_Color& textColor, const SDL_Rect* src, const SDL_Rect* dest)
+	:text(msg), xPos(x), yPos(y), font(fontName), size(fontSize), color(textColor) 
+{
+	if (src != NULL)
+		srcRect = *src;
+	else {
+		srcRect.x = 0;
+		srcRect.y = 0;
+		//srcRect.x = 
+	}
+	if (dest != NULL)
+		destRect = *dest;
 }

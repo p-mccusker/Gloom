@@ -4,9 +4,6 @@
 
 using namespace std;
 
-random GENERATOR;
-
-
 int main(int argc, char* argv[])
 {
 	/*
@@ -65,8 +62,11 @@ int main(int argc, char* argv[])
 	SDL_Quit();
 	*/
 
-	Game* game = new Game(100, 40, "C:\\Users\\games\\source\\repos\\Gloom\\Gloom\\res\\taffer.png");
+	Game* game = new Game(100, 100, "C:\\Users\\games\\source\\repos\\Gloom\\Gloom\\res\\Alloy_12x12.png");
 	game->Run();
+
+	//for (int i = 0; i < 50; i++)
+	//	std::cout << GENERATOR.randNum(1, 2 + 1) << '\n';
 
 	delete game;
 

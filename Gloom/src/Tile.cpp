@@ -7,6 +7,13 @@ Tile::Tile(const char& tile, const int& x, const int& y)
 	_char = tile;
 }
 
+Tile::Tile(const Tile& other)
+{
+	_x = other._x;
+	_y = other._y;
+	_char = other._char;
+}
+
 Tile::~Tile()
 {
 
@@ -25,12 +32,32 @@ Entity::Entity(const char& tile, const int& x, const int& y, const std::string& 
 	_xp = xp;
 	_viewDist = viewDist;
 	_alive = true;
-	_inv = new Inventory(InventoryOwnerType::Entity, (void*)this);
-	for (auto slot : _armorSlots)
-		slot = new Armor(CHESTPLATE);
-	for (auto weapSlot : _weaponSlots)
-		weapSlot = new Weapon(WEAPON_NULL);
+	_inv = Inventory(InventoryOwnerType::Entity, (void*)this);
+	//for (auto slot : _armorSlots)
+	//	slot = new Armor(ARMOR_NULL);
+	//for (auto weapSlot : _weaponSlots)
+	//	weapSlot = new Weapon(WEAPON_NULL);
 
+}
+
+Entity::Entity(const Entity& other)
+{
+	_x = other._x;
+	_y = other._y;
+	_char = other._char;
+	_name = other._name;
+	_attack = other._attack;
+	_defense = other._defense;
+	_currentHp = other._currentHp;
+	_maxHp = other._maxHp;
+	_lvl = other._lvl;
+	_xp = other._xp;
+	_viewDist = other._viewDist;
+	_alive = other._alive;
+	_inv = other._inv;
+	_armorSlots = other._armorSlots;
+	_weaponSlots = other._weaponSlots;
+	_currentRoom = other._currentRoom;
 }
 
 Entity::~Entity()
@@ -40,12 +67,9 @@ Entity::~Entity()
 	for (auto weapon : _weaponSlots)
 		weapon = nullptr;
 
-	delete _inv; 
-	_inv = nullptr;
-
 }
 
-std::tuple<int, int> Entity::Attack(Entity& defender, MsgQueue& log)
+Coord Entity::Attack(Entity& defender, MsgQueue& log)
 {
 	int dmg = GENERATOR.randNum(0, _attack);
 	int dmgBlocked = GENERATOR.randNum(0, defender.Defense());
@@ -61,15 +85,14 @@ std::tuple<int, int> Entity::Attack(Entity& defender, MsgQueue& log)
 			log.Enqueue(deathMsg);
 			log.Enqueue(xpMsg);
 			_xp += defender.XP();
-			return std::tuple<int, int>(defender.X(), defender.Y());
+			return { defender.X(), defender.Y() };
 		}
 	}
 	else {
 		std::string miss = _name + " misses " + defender.Name();
 		log.Enqueue(miss);
+		return { -1,-1 };
 	}
-
-	return std::tuple<int, int>(-1,-1);
 }
 
 void Entity::setCurrentHealth(const int& currHP)
@@ -88,11 +111,9 @@ void Entity::Unequip(Armor& armor)
 		if (*oldItem == armor) {
 			_defense -= oldItem->Defense();
 			oldItem->toggleEquip();
-			_armorSlots[itemIndex] = new Armor(ARMOR_NULL);
+			_armorSlots[itemIndex] = nullptr;
 		}
-
 	}
-
 }
 
 void Entity::Unequip(Weapon& weapon)
@@ -101,7 +122,7 @@ void Entity::Unequip(Weapon& weapon)
 	if (*oldItem == weapon) {
 		_attack -= oldItem->Damage();
 		oldItem->toggleEquip();
-		_weaponSlots[0] = new Weapon(WEAPON_NULL);
+		_weaponSlots[0] = nullptr;
 	}
 }
 
@@ -110,7 +131,8 @@ void Entity::Equip(Weapon& weapon)
 	if (weapon == *_weaponSlots[0]) 
 		Unequip(weapon);
 	else {
-		Unequip(*_weaponSlots[0]);
+		if (_weaponSlots[0] != nullptr)
+			Unequip(*_weaponSlots[0]);
 		*_weaponSlots[0] = weapon;
 		_weaponSlots[0]->toggleEquip();
 		_attack += weapon.Damage();
@@ -123,9 +145,10 @@ void Entity::Equip(Armor& armor)
 	if (armor == *_armorSlots[itemIndex])
 		Unequip(armor);
 	else {
-		Unequip(*_weaponSlots[0]);
+		if (_armorSlots[itemIndex] != nullptr)
+			Unequip(*_armorSlots[itemIndex]);
 		*_armorSlots[itemIndex] = armor;
-		_weaponSlots[0]->toggleEquip();
+		_armorSlots[itemIndex]->toggleEquip();
 		_defense += armor.Defense();
 	}
 }
@@ -143,38 +166,38 @@ void Entity::Equip(Potion& potion)
 		else
 			_currentHp += std::get<1>(potionStats);
 	}
-	auto potions = _inv->getPotions();
-	_inv->removeItem(potion);
+	auto potions = _inv.getPotions();
+	_inv.removeItem(potion);
 }
 
 void Entity::addItem(Armor armor)
 {
-	_inv->addItem(armor);
+	_inv.addItem(armor);
 }
 
 void Entity::addItem(Weapon weapon)
 {
-	_inv->addItem(weapon);
+	_inv.addItem(weapon);
 }
 
 void Entity::addItem(Potion potion)
 {
-	_inv->addItem(potion);
+	_inv.addItem(potion);
 }
 
 std::vector<Armor>& Entity::getArmor()
 {
-	return _inv->getArmor();
+	return _inv.getArmor();
 }
 
 std::vector<Weapon>& Entity::getWeapons()
 {
-	return _inv->getWeapons();
+	return _inv.getWeapons();
 }
 
 std::vector<Potion>& Entity::getPotions()
 {
-	return _inv->getPotions();
+	return _inv.getPotions();
 }
 /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 Enemy::Enemy(const char& tile, const int& x, const int& y)

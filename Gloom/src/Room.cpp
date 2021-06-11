@@ -1,10 +1,6 @@
 #include "Room.h"
 
-double circleDistance(const double& x0, const double& y0, const double& x1, const double& y1) {
-	return sqrt(pow((x1 - x0), 2) + pow((y1 - y0), 2));
-}
-
-int hardnessToInt(RoomHardness hardness)
+inline int hardnessToInt(RoomHardness hardness)
 {
 	switch (hardness)
 	{
@@ -22,6 +18,7 @@ int hardnessToInt(RoomHardness hardness)
 		return -1;
 	}
 }
+
 
 Room::Room(const Room& other)
 {

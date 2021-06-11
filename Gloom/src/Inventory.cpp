@@ -4,9 +4,8 @@ Inventory::Inventory()
 {
 	//_owner = nullptr;
 	_ownerType = InventoryOwnerType::Uninitialized;
-
+	
 }
-
 
 Inventory::Inventory(InventoryOwnerType ownerType, void* owner)
 {
@@ -33,7 +32,7 @@ void Inventory::removeItem(Weapon& weapon)
 {
 	int itemIndex = -1;
 	for (unsigned int i = 0; i < _weapons.size(); i++) {
-		if (_weapons[i] == weapon) {
+		if (&_weapons[i] == &weapon) {
 			itemIndex = i;
 			break;
 		}
@@ -46,7 +45,7 @@ void Inventory::removeItem(Armor& armor)
 {
 	int itemIndex = -1;
 	for (unsigned int i = 0; i < _armor.size(); i++) {
-		if (_armor[i] == armor) {
+		if (&_armor[i] == &armor) {
 			itemIndex = i;
 			break;
 		}
@@ -59,11 +58,21 @@ void Inventory::removeItem(Potion& potion)
 {
 	int itemIndex = -1;
 	for (unsigned int i = 0; i < _potions.size(); i++) {
-		if (_potions[i] == potion) {
+		if (&_potions[i] == &potion) {
 			itemIndex = i;
 			break;
 		}
 	}
 	if (itemIndex > -1)
 		_potions.erase(_potions.begin() + itemIndex);
+}
+
+Inventory& Inventory::operator=(const Inventory& other)
+{
+	_armor = other._armor;
+	_weapons = other._weapons;
+	_potions = other._potions;
+	_ownerType = other._ownerType;
+
+	return *this;
 }

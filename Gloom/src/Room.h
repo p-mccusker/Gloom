@@ -20,7 +20,7 @@ public:
 	Room(const int& centerX, const int& centerY, const int& radius);
 	~Room() { }
 
-	std::tuple<int, int> Center() { return std::tuple<int,int>(_centerX, _centerY); }
+	Coord Center() { return { _centerX, _centerY }; }
 	RoomHardness Hardness() { return _hardness; }
 	RoomSize Size() { return _size; }
 	RoomShape Shape() { return _shape; }
@@ -49,6 +49,8 @@ public:
 
 	static const int minRoomRadius = 3;
 	static const int maxRoomRadius = 8;
+
+	friend bool operator==(const Room& lhs, const Room& rhs) { return &lhs == &rhs; }
 protected:
 	RoomHardness _hardness = RoomHardness::Empty;
 	RoomSize _size = RoomSize::Small;
@@ -66,7 +68,6 @@ protected:
 		_radius = 0;
 	bool _playerStart = false,
 		 _levelExit = false;
-
 };
 
 #endif

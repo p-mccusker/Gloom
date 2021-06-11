@@ -172,7 +172,7 @@
     <ClInclude Include="src\TileSet.h" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="res\dejavu10x10.png" />
+    <Image Include="res\Alloy_12x12.png" />
     <Image Include="res\taffer.png" />
   </ItemGroup>
   <ItemGroup>

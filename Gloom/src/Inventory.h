@@ -30,6 +30,9 @@ public:
 	std::vector<Weapon>& getWeapons() { return _weapons; }
 	std::vector<Potion>& getPotions() { return _potions; }
 
+	friend bool operator==(const Inventory& lhs, const Inventory& rhs) { return &lhs == &rhs; }
+	Inventory& operator=(const Inventory& other);
+
 private:
 	std::vector<Armor> _armor;
 	std::vector<Weapon> _weapons;
