@@ -8,7 +8,7 @@ enum class InventoryOwnerType { Uninitialized, Entity, Container };
 class Inventory
 {
 public:
-	Inventory();
+	Inventory() {}
 	Inventory(InventoryOwnerType ownerType , void* owner = nullptr);
 	~Inventory() { }//delete _owner; _owner = nullptr; }
 
@@ -34,11 +34,11 @@ public:
 	Inventory& operator=(const Inventory& other);
 
 private:
-	std::vector<Armor> _armor;
-	std::vector<Weapon> _weapons;
-	std::vector<Potion> _potions;
+	std::vector<Armor> _armor = {};
+	std::vector<Weapon> _weapons = {};
+	std::vector<Potion> _potions = {};
 	//void* _owner;
-	InventoryOwnerType _ownerType;
+	InventoryOwnerType _ownerType = InventoryOwnerType::Uninitialized;
 };
 
 #endif 

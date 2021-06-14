@@ -62,11 +62,12 @@ int main(int argc, char* argv[])
 	SDL_Quit();
 	*/
 
-	Game* game = new Game(100, 100, "C:\\Users\\games\\source\\repos\\Gloom\\Gloom\\res\\Alloy_12x12.png");
+	Game* game = new Game(100, 100, "C:\\Users\\games\\source\\repos\\Gloom\\Gloom\\res\\Alloy_12x12_new.png");
 	game->Run();
 
+
 	//for (int i = 0; i < 50; i++)
-	//	std::cout << GENERATOR.randNum(1, 2 + 1) << '\n';
+	//std::cout << GENERATOR.Choice<int>(std::vector<int> {1, 2, 3, 4, 5, 6 }) << '\n';
 
 	delete game;
 

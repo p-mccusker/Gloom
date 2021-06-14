@@ -84,7 +84,11 @@ public:
 	int viewDistance() const { return _viewDist; }
 	std::string Name() const { return _name; }
 	Room& currentRoom() { return *_currentRoom; }
-
+	Inventory& Inv() { return _inv; }
+	bool isPlayer() { return _char == Tile::Player; }
+	bool isNull() { return _char == Tile::Uninitialized; }
+	//bad
+	bool isEnemy() { return _char != Tile::Uninitialized && _char != Tile::Player; }
 	//Setters
 	void setAttack(const int& atk) { _attack = atk; }
 	void setDefense(const int& def) { _defense = def; }
@@ -95,6 +99,8 @@ public:
 	void setViewDistance(const int& dist) { _viewDist = dist; }
 	void setName(const std::string& name) { _name = name; }
 	void setCurrentRoom(Room* room) { _currentRoom = room; }
+
+	Entity& operator=( const Entity& rhs);
 
 	static int const Slot_Chest = 0;
 	static int const Slot_Shoulders = 1;
@@ -114,7 +120,7 @@ protected:
 	Inventory _inv;
 	std::array<Armor*, Slot_Armor_Total> _armorSlots = { nullptr };
 	std::array<Weapon*, 2> _weaponSlots = { nullptr };
-	Room* _currentRoom;
+	Room* _currentRoom = nullptr;
 };
 
 class Enemy :

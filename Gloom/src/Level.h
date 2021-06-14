@@ -17,7 +17,7 @@ public:
     Level(const int& tilesWide, const int& tilesHigh);
     ~Level();
 
-    void Generate(Player& player);
+    void Generate(Entity* player);
     Tile& getTile(const int& x, const int& y);
     Entity& getEntity(const int& x, const int& y);
     Container& getContainer(const int& x, const int& y);
@@ -28,22 +28,26 @@ public:
     void reset(const Map& map, const int& x, const int& y);
 
     void swap(Tile& t1, const Direction& dir);
-    void swap(Entity& t1,const Direction& dir);
+    void swap(Entity* t1,const Direction& dir);
     void swap(Container& t1, const Direction& dir);
 
-    static const int maxRooms = 11;
-    static const int minRooms = 8;
+    static const int maxRooms = 9;
+    static const int minRooms = 6;
 
 private:
     Room findRectRoomLoc();
     Room findCircleRoomLoc();
+    Room findRectRoomLocBSP(const Coord& topLeft, const Coord& bottomRight);
+    Room findCircleRoomLocBSP(const Coord& topLeft, const Coord& bottomRight);
+    void generateRoomsBSP();
+
     std::vector<Coord> getHallwayPath(const Coord& start, const Coord& end);
 
     void generateRooms();
     void generateHallways();
     void placeHallwayWalls();
     void generateEnemies();
-    void placePlayer(Player& player);
+    void placePlayer(Entity* player);
     void placeExit();
     void generateContainers();
 

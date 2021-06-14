@@ -17,7 +17,7 @@ public:
     static const int LogLength = 15;
 
     void Run();
-    void handleInput();
+    void handleInput(SDL_Event& e);
     void waitForKey(const SDL_KeyCode& key);
     void Print();
     void Help();
@@ -27,7 +27,7 @@ public:
     void Restart(bool restartFromDeath=true);
     void Victory();
     void Exit();
-    void Inventory();
+    void InventoryScreen(Inventory* inv=nullptr);
     std::vector<Coord> tilesInView(const Entity& entity);
     
 private:
@@ -37,7 +37,7 @@ private:
     std::unique_ptr<Renderer> _renderer = nullptr;
     std::unique_ptr<Level> _level = nullptr;
     std::unique_ptr<MsgQueue> _log = nullptr;
-    std::unique_ptr<Player> _player = nullptr;
+    Entity* _player = nullptr;
     bool _running = true,
         _seeEntireMap = true,
         _showTutorial = false,

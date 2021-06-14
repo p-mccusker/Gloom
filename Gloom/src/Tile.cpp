@@ -19,24 +19,77 @@ Tile::~Tile()
 
 }
 /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-Entity::Entity(const char& tile, const int& x, const int& y, const std::string& name, const int& hp, 
-			   const int& atk, const int& def, const int& lvl, const int& xp, const int& viewDist)
+Entity::Entity(const char& tile, const int& x, const int& y, const std::string& name, const int& hp,
+	const int& atk, const int& def, const int& lvl, const int& xp, const int& viewDist)
 	:Tile(tile, x, y)
 {
-	_name = name;
-	_currentHp = hp;
-	_maxHp = _currentHp;
-	_attack = atk;
-	_defense = def;
-	_lvl = lvl;
-	_xp = xp;
-	_viewDist = viewDist;
+	//_name = name;
+	//_currentHp = hp;
+	//_maxHp = _currentHp;
+	//_attack = atk;
+	//_defense = def;
+	//_lvl = lvl;
+	//_xp = xp;
+	//_viewDist = viewDist;
 	_alive = true;
 	_inv = Inventory(InventoryOwnerType::Entity, (void*)this);
 	//for (auto slot : _armorSlots)
 	//	slot = new Armor(ARMOR_NULL);
 	//for (auto weapSlot : _weaponSlots)
 	//	weapSlot = new Weapon(WEAPON_NULL);
+
+	switch (tile) {
+	case Tile::Player:
+		_name = "Player";
+		_currentHp = _maxHp = 100;
+		_attack = 1;
+		_defense = 0;
+		_lvl = 1;
+		_xp = 0;
+		break;
+
+	case Tile::Rat:
+		_name = "rat";
+		_currentHp = _maxHp = 10;
+		_attack = 2;
+		_defense = 0;
+		_lvl = 1;
+		_xp = 5;
+		break;
+	case Tile::Rogue:
+		_name = "Rouge";
+		_currentHp = _maxHp = 20;
+		_attack = 5;
+		_defense = 2;
+		_lvl = 2;
+		_xp = 15;
+		break;
+	case Tile::Goblin:
+		_name = "Goblin";
+		_currentHp = _maxHp = 20;
+		_attack = 4;
+		_defense = 2;
+		_lvl = 2;
+		_xp = 15;
+		break;
+	case Tile::Ogre:
+		_name = "Ogre";
+		_currentHp = _maxHp = 40;
+		_attack = 8;
+		_defense = 4;
+		_lvl = 4;
+		_xp = 40;
+		break;
+	case Tile::Dragon:
+		_name = "Dragon";
+		_currentHp = _maxHp = 70;
+		_attack = 18;
+		_defense = 7;
+		_lvl = 10;
+		_xp = 100;
+		break;
+	}
+	_viewDist = 5;
 
 }
 
@@ -100,6 +153,28 @@ void Entity::setCurrentHealth(const int& currHP)
 	_currentHp = currHP;
 	if (currHP < 0)
 		_alive = false;
+}
+
+Entity& Entity::operator=(const Entity& rhs)
+{
+	_x = rhs._x;
+	_y = rhs._y;
+	_char = rhs._char;
+	_name = rhs._name;
+	_attack = rhs._attack;
+	_defense = rhs._defense;
+	_currentHp = rhs._currentHp;
+	_maxHp = rhs._maxHp;
+	_lvl = rhs._lvl;
+	_xp = rhs._xp;
+	_viewDist = rhs._viewDist;
+	_alive = rhs._alive;
+	_inv = rhs._inv;
+	_armorSlots = rhs._armorSlots;
+	_weaponSlots = rhs._weaponSlots;
+	_currentRoom = rhs._currentRoom;
+
+	return *this;
 }
 
 void Entity::Unequip(Armor& armor)
@@ -266,5 +341,5 @@ Enemy::Enemy(const char& tile, const int& x, const int& y)
 Player::Player(const int& x, const int& y)
 	:Entity(Tile::Player, x, y, "Player", 100, 1, 0, 1, 0, 5)
 {
-	_currentRoom = nullptr;
+
 }

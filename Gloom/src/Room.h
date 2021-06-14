@@ -20,21 +20,21 @@ public:
 	Room(const int& centerX, const int& centerY, const int& radius);
 	~Room() { }
 
-	Coord Center() { return { _centerX, _centerY }; }
-	RoomHardness Hardness() { return _hardness; }
-	RoomSize Size() { return _size; }
-	RoomShape Shape() { return _shape; }
-	int getHallwayAmount() { return _numHallways; }
-	int getContainerAmount() { return _numContainers; }
-	int Radius() { return _radius; }
-	int startX() { return _startX; }
-	int startY() { return _startY; }
-	int endX() { return _endX; }
-	int endY() { return _endY; }
-	bool isPlayerStart() { return _playerStart; }
-	bool isExit() { return _levelExit; }
-	bool Intersect(Room& other);
-	bool isInRoom(const int& x, const int& y);
+	Coord Center() const { return { _centerX, _centerY }; }
+	RoomHardness Hardness() const { return _hardness; }
+	RoomSize Size() const { return _size; }
+	RoomShape Shape() const { return _shape; }
+	int getHallwayAmount() const { return _numHallways; }
+	int getContainerAmount() const { return _numContainers; }
+	int Radius() const { return _radius; }
+	int startX() const { return _startX; }
+	int startY() const { return _startY; }
+	int endX() const { return _endX; }
+	int endY() const { return _endY; }
+	bool isPlayerStart() const { return _playerStart; }
+	bool isExit() const { return _levelExit; }
+	bool Intersect(Room& other) const;
+	bool isInRoom(const int& x, const int& y) const;
 
 	void Generate();
 	void incrementNumHallways() { _numHallways++; }
@@ -42,13 +42,13 @@ public:
 	void setPlayerStart() { _playerStart = true; }
 	void setLevelExit() { _levelExit = true; }
 
-	static const int maxRoomWidth = 16;
-	static const int minRoomWidth = 6;
-	static const int maxRoomHeight = 16;
-	static const int minRoomHeight = 6;
+	static const int maxRoomWidth = 14;
+	static const int minRoomWidth = 5;
+	static const int maxRoomHeight = 14;
+	static const int minRoomHeight = 5;
 
-	static const int minRoomRadius = 3;
-	static const int maxRoomRadius = 8;
+	static const int minRoomRadius =  minRoomWidth / 2;
+	static const int maxRoomRadius =  maxRoomHeight / 2;
 
 	friend bool operator==(const Room& lhs, const Room& rhs) { return &lhs == &rhs; }
 protected:

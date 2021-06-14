@@ -19,22 +19,23 @@ Game::Game(const int& width, const int& height, const std::string& tilesetPath)
 	if (IMG_Init(IMG_INIT_PNG) < 0)
 		std::cerr << "Failed to initialize png support\n";
 
-	
-
 	getTileSetTexture();
 
 	_log = std::make_unique<MsgQueue>(15);
-	_level = std::make_unique<Level>(mapWidth, mapHeight);
-	_player = std::make_unique<Player>(0, 0);
+	_level = std::make_unique<Level>(width, height);
+	_player = new Entity(Tile::Player, 0, 0);
 }
 
 Game::~Game()
 {
 	SDL_QuitSubSystem(SDL_INIT_EVENTS);
+	delete _player;
+	_player = nullptr;
 }
 
 void Game::getTileSetTexture()
 {
+	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
 	SDL_Texture* tileTex = _renderer->getTextureFromSurface(_tileset->image);
 	_tileTexture = std::make_unique<Texture>(tileTex);
 }
@@ -43,50 +44,70 @@ void Game::Run()
 {
 	while (_restart) {
 		_renderer->Clear();
+		_level->Generate(_player);
 		_player->setName("Player");
-		_level->Generate(*_player);
-
-
 
 		Print();
 
+		SDL_Event e;
+
 		while (_running) {
-			//handleInput();
-			//EntitiesTurn();
+			//Handle events on queue
+			//SDL_WaitEvent(&e);
+				//User requests quit
+			while (SDL_PollEvent(&e)) {
+				if (e.type == SDL_QUIT)
+					_running = false;
+
+				else if (e.type == SDL_KEYDOWN) {
+					switch (e.key.keysym.sym) {
+					case SDLK_w:
+						Move(*_player, Direction::Up);
+						break;
+					case SDLK_s:
+						Move(*_player, Direction::Down);
+						break;
+					case SDLK_a:
+						Move(*_player, Direction::Left);
+						break;
+					case SDLK_d:
+						Move(*_player, Direction::Right);
+						break;
+					case SDLK_e:
+
+						break;
+					case SDLK_TAB:
+						InventoryScreen(&_player->Inv());
+						break;
+					case SDLK_l:
+						Log();
+						break;
+					case SDLK_m:
+						_seeEntireMap != _seeEntireMap;
+						break;
+					case SDLK_QUESTION:
+						Help();
+						break;
+					case SDLK_q:
+						Exit();
+						break;
+					}
+
+				}
+
+				else if (e.type == SDL_KEYUP) {
+
+				}
+
+			}
+
+			EntitiesTurn();
 			Print();
-
-			if (!_player->isAlive())
-				_running = false;
 		}
-	}
+		}
+
 }
 
-void Game::handleInput()
-{
-	bool quit = false;
-	SDL_Event e;
-	while (!quit) {
-		//Handle events on queue
-		while (SDL_PollEvent(&e) != 0)
-		{
-			//User requests quit
-			if (e.type == SDL_QUIT)
-			{
-				quit = true;
-			}
-			else if (e.type = SDL_KEYDOWN) {
-
-			}
-
-
-			
-
-			//const auto& zeroRect = _tileset->GetTileRect(ZERO);
-		   // _tileTexture->Render(_renderer, zeroRect.x, zeroRect.y);
-
-		}
-	}
-}
 
 void Game::waitForKey(const SDL_KeyCode& key)
 {
@@ -184,7 +205,7 @@ void Game::Exit()
 {
 }
 
-void Game::Inventory()
+void Game::InventoryScreen(Inventory* inv)
 {
 }
 
@@ -218,6 +239,7 @@ std::vector<Coord> Game::tilesInView(const Entity& entity)
 
 MoveAction Game::checkUp(const int& x, const int& y)
 {
+	std::cout << "checkUp(): X:" << x << " Y:" << y << "\n";
 	char nextTile = _level->getTile(x, y - 1).Char();
 
 	if (nextTile == Tile::Wall)	
@@ -229,6 +251,7 @@ MoveAction Game::checkUp(const int& x, const int& y)
 		else	
 			return MoveAction::Move;
 	}
+	std::cout << "~checkUp()\n";
 }
 
 MoveAction Game::checkDown(const int& x, const int& y)
@@ -299,7 +322,9 @@ void Game::Move(Entity& entity, const Direction& dir)
 		auto action = moveAction(entX, entY, Direction::Up);
 
 		if (action == MoveAction::Move) {
+			std::cout << "[Player X:" << entX << " Y:" << entY << "] Before Move Up\n";
 			_level->swap(entity, Direction::Up);
+			std::cout << "[Player X:" << entX << " Y:" << entY << "] After Move Up\n";
 		}
 		else if (action == MoveAction::Attack) {
 			Entity& entityAbove = _level->getEntity(entity.X(), entity.Y() - 1);
@@ -386,7 +411,7 @@ void Game::EntitiesTurn()
 			if (entity.Char() != Tile::Uninitialized && entity.Char() != Tile::Player) {
 				int decision = GENERATOR.Choice<int>(decisions);
 
-				if (decision == 0) {
+				if (decision == act) {
 					Direction dir = GENERATOR.Choice<Direction>(directions);
 					Move(entity, dir);
 				}

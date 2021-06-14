@@ -1,12 +1,5 @@
 #include "Inventory.h"
 
-Inventory::Inventory()
-{
-	//_owner = nullptr;
-	_ownerType = InventoryOwnerType::Uninitialized;
-	
-}
-
 Inventory::Inventory(InventoryOwnerType ownerType, void* owner)
 {
 	//_owner = owner;

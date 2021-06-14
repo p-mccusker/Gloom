@@ -67,7 +67,6 @@ inline double circleDistance(const double& x0, const double& y0, const double& x
 
 template<typename T>
 bool Contains(const std::vector<T>& arr, const T& item) {
-
 	for (int i = 0; i < arr.size(); i++) {
 		if (arr[i] == item)
 			return true;
@@ -86,6 +85,7 @@ inline std::vector<Coord>  bresenham(int x1, int y1, int x2, int y2) {
 	int slope_error_new = m_new - (x2 - x1);
 	for (int x = x1, y = y1; x <= x2; x++)
 	{
+		coords.emplace_back(x, y);
 		// Add slope to increment angle formed
 		slope_error_new += m_new;
 
@@ -96,7 +96,29 @@ inline std::vector<Coord>  bresenham(int x1, int y1, int x2, int y2) {
 			y++;
 			slope_error_new -= 2 * (x2 - x1);
 		}
-		coords.emplace_back(x, y);
+		
+	}
+	return coords;
+}
+
+inline std::vector<Coord> dda(int x1, int y1, int x2, int y2) {
+	int dx = x2 - x1;
+	int dy = y2 - y1;
+	int steps = abs(dx) > abs(dy) ? abs(dx) : abs(dy);
+	int xInc = dx / (float)steps;
+	int yInc = dy / (float)steps;
+
+	int x = x1, y = y1;
+	std::vector<Coord> coords;
+
+	for (int i = 0; i <= steps; i++) {
+		Coord c;
+		c.x = x;
+		c.y = y;
+		coords.push_back(c);
+		x += xInc;
+		y += yInc;
+
 	}
 	return coords;
 }

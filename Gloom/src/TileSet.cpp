@@ -64,8 +64,8 @@ SDL_Rect& TileSet::GetTileRect(const char& tile)
         return textureRects[O_UP];
     case 'D':
         return textureRects[D_UP];
-    case '>':
-        return textureRects[GREATER_THAN];
+    case '<':
+        return textureRects[LESS_THAN];
     default:
         return textureRects[EMPTY];
     }
@@ -84,7 +84,7 @@ void TileSet::Load(const std::string& path, const int& width, const int& height)
         this->path = path;
         tileWidth = width;
         tileHeight = height;
-
+        /*
         SDL_PixelFormat* fmt;
         SDL_Color* color;
         Uint8 red,
@@ -101,7 +101,7 @@ void TileSet::Load(const std::string& path, const int& width, const int& height)
         SDL_UnlockSurface(image);
 
         SDL_SetColorKey(image, SDL_TRUE, SDL_MapRGBA(fmt, red, green, blue, alpha));
-
+        */
         for (int i = 0; i < 128; i++) {
             textureRects[i].x = (i % 16) * tileWidth;
             textureRects[i].y = int(i / 16) * tileHeight;

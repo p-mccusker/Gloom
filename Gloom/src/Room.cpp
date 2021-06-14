@@ -19,7 +19,6 @@ inline int hardnessToInt(RoomHardness hardness)
 	}
 }
 
-
 Room::Room(const Room& other)
 {
 	_hardness = other._hardness;
@@ -63,41 +62,45 @@ Room::Room(const int& centerX, const int& centerY, const int& radius)
 	_width = 2 * _radius;
 }
 
-bool Room::Intersect(Room& other)
+bool Room::Intersect(Room& other) const
 {
 	if (this->_shape == RoomShape::Rectangle && other._shape == RoomShape::Rectangle)
 		return _startX <= other._endX  && _endX >= other._startX 
 			&& _startY <= other._endY  && _endY >= other._startY;
 	else if (this->_shape == RoomShape::Rectangle && other._shape == RoomShape::Circle) {
-		int xDist = abs(other._centerX - _centerX);
-		int	yDist = abs(other._centerY - _centerY);
+		double xDist = abs(other._centerX - _centerX);
+		double	yDist = abs(other._centerY - _centerY);
 
-		if (xDist > ((_width / 2) + other._radius) || yDist > ((_height / 2) + other._radius)) return false;
-		if (xDist <= (_width / 2) || yDist <= (_height / 2)) return true;
+		if (xDist > ((_width / 2)  + other._radius)) return false;
+		if (yDist > ((_height / 2) + other._radius)) return false;
+		if (xDist <= (_width / 2))  return true;
+		if (yDist <= (_height / 2)) return true;
 
-		double cornerDist = pow((xDist - _width / 2), 2) +
-			pow((yDist - _height / 2), 2);
+		double cornerDist = pow((xDist - (_width / 2)), 2) +
+			pow((yDist - (_height / 2)), 2);
 
 		return cornerDist <= pow(other._radius, 2);
 	}
 	else if (this->_shape == RoomShape::Circle && other._shape == RoomShape::Rectangle) {
-		int xDist = abs(other._centerX - _centerX);
-		int	yDist = abs(other._centerY - _centerY);
+		double xDist = abs(other._centerX - _centerX);
+		double	yDist = abs(other._centerY - _centerY);
 
-		if (xDist > ((other._width / 2) + _radius) || yDist > ((other._height / 2) + _radius)) return false;
-		if (xDist <= (other._width / 2) || yDist <= (other._height / 2)) return true;
+		if (xDist > (((double)other._width / 2) + _radius)) return false;
+		if (yDist > (((double)other._height / 2) + _radius)) return false;
+		if (xDist <= ((double)other._width / 2)) return true;
+		if (yDist <= ((double)other._height / 2)) return true;
 
-		double cornerDist = pow((xDist - other._width / 2), 2) + pow((yDist - other._height / 2), 2);
+		double cornerDist = pow((xDist - (other._width / 2)), 2) + pow((yDist - (other._height / 2)), 2);
 
-		return cornerDist <= pow(_radius, 2);
+		return cornerDist <= pow((double)_radius, 2);
 	}
 	else {
 		double distance = circleDistance(_centerX, _centerY, other._centerX, other._centerY);
-		return distance <= (double(_radius) + double(other._radius)) + 0.5;
+		return distance <= ((double)_radius + other._radius) + 0.5;
 	}
 }
 
-bool Room::isInRoom(const int& x, const int& y)
+bool Room::isInRoom(const int& x, const int& y) const 
 {
 	if (_shape == RoomShape::Rectangle)
 		return _startX <= x && x <= _endX && _startY <= y && y <= _endY;
