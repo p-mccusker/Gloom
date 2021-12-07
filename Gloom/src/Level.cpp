@@ -1,33 +1,27 @@
 #include "Level.h"
 
 
-Level::Level(const int& tilesWide, const int& tilesHigh)
+Level::Level(const int& tilesWide, const int& tilesHigh, const int& tileWidth, const int& tileHeight)
 {
 	_width = tilesWide;
 	_height = tilesHigh;
+	_tileWidth = tileWidth;
+	_tileHeight = tileHeight;
 	_startRoom = _exitRoom = nullptr;
 
 	_envMap.reserve(tilesHigh);
-	_entityMap.reserve(tilesHigh);
-	_containerMap.reserve(tilesHigh);
+	_entityMap.reserve(tilesHigh * tilesWide);
+	_containerMap.reserve(tilesHigh * tilesWide);
 
 	for (int y = 0; y < tilesHigh; y++) {
-		std::vector<Tile>      envline;
-		std::vector<Container> cline;
-		std::vector<Entity>    entline;
-
-		envline.reserve(tilesWide);
-		cline.reserve(tilesWide);
-		entline.reserve(tilesWide);
-
+		std::vector<Tile> line;
+		line.reserve(tilesWide);
 		for (int x = 0; x < tilesWide; x++) {
-			envline.emplace_back(Tile::Uninitialized, x, y);
-			cline.emplace_back(Tile::Uninitialized, x, y );
-			entline.emplace_back(Tile::Uninitialized, x, y);
+			line.emplace_back(Tile::Uninitialized, x * tileWidth , y * tileHeight);
+			_containerMap.emplace_back(Tile::Uninitialized, x * tileWidth, y * tileHeight);
+			_entityMap.emplace_back(Tile::Uninitialized, x * tileWidth, y * tileHeight);
 		}
-		_envMap.push_back(envline);
-		_containerMap.push_back(cline);
-		_entityMap.push_back(entline);
+		_envMap.push_back(line);
 	}
 }
 
@@ -59,100 +53,39 @@ Tile& Level::getTile(const int& x, const int& y)
 	return _envMap.at(y).at(x);
 }
 
-Entity& Level::getEntity(const int& x, const int& y)
+Entity& Level::getEntity(const int& index)
 {
-	return _entityMap[y][x];
+	return _entityMap.at(index);
 }
 
-Container& Level::getContainer(const int& x, const int& y)
+Container& Level::getContainer(const int& index)
 {
-	return _containerMap[y][x];
+	return _containerMap.at(index);
 }
 
-void Level::reset(const Map& map, const int& x, const int& y)
+void Level::reset(const Map& map, const int& index)
 {
-	if (map == Map::Tile)
-		_envMap[y][x] = Tile(Tile::Uninitialized, x, y);
-	else if (map == Map::Entity)
-		_entityMap[y][x] = Entity(Tile::Uninitialized, x, y);
-	else if (map == Map::Container)
-		_containerMap[y][x] = Container(Tile::Uninitialized, x, y);
-}
-
-void Level::swap(Tile& t1,  const Direction& dir) {
-	if (dir == Direction::Up) {
-		std::swap(t1, _envMap[t1.Y() - 1][t1.X()]);
-		_envMap[t1.Y() - 1][t1.X()].setY(t1.Y());
-		t1.setY(t1.Y() - 1);
+	int x, y;
+	if (map == Map::Tile) {
+		Tile oldTile = _envMap[index];
+		x = oldTile.X();
+		y = oldTile.Y();
+		_envMap.at(index) = Tile(Tile::Uninitialized, x, y);
 	}
-	else if (dir == Direction::Down) {
-		std::swap(t1, _envMap[t1.Y() + 1][t1.X()]);
-		_envMap[t1.Y() + 1][t1.X()].setY(t1.Y());
-		t1.setY(t1.Y() + 1);
+	else if (map == Map::Entity) {
+		Entity oldEntity = _entityMap[index];
+		x = oldEntity.X();
+		y = oldEntity.Y();
+		_entityMap.at(index) = Entity(Tile::Uninitialized, x, y);
 	}
-	else if (dir == Direction::Left) {
-		std::swap(t1, _envMap[t1.Y()][t1.X() - 1]);
-		_envMap[t1.Y()][t1.X() - 1].setX(t1.X());
-		t1.setX(t1.X() - 1);
-	}
-	else if (dir == Direction::Right) {
-		std::swap(t1, _envMap[t1.Y()][t1.X() + 1]);
-		_envMap[t1.Y()][t1.X() + 1].setX(t1.X());
-		t1.setY(t1.X() + 1);
+	else if (map == Map::Container) {
+		Container oldContainer = _containerMap[index];
+		x = oldContainer.X();
+		y = oldContainer.Y();
+		_containerMap.at(index) = Container(Tile::Uninitialized, x, y);
 	}
 }
 
-void Level::swap(Entity* t1, const Direction& dir) {
-
-	Entity next;
-
-
-	if (dir == Direction::Up) {
-
-		_entityMap[t1->Y() - 1][t1->X()].setY(t1->Y());
-		t1->setY(t1->Y() - 1);
-		std::swap(*t1, _entityMap[t1->Y() - 1][t1->X()]);
-
-	}
-	else if (dir == Direction::Down) {
-		_entityMap[t1->Y() + 1][t1->X()].setY(t1->Y());
-		t1->setY(t1->Y() + 1);
-		std::swap(*t1, _entityMap[t1->Y() + 1][t1->X()]);
-	}
-	else if (dir == Direction::Left) {
-		_entityMap[t1->Y()][t1->X() - 1].setX(t1->X());
-		t1->setX(t1->X() - 1);
-		std::swap(*t1, _entityMap[t1->Y()][t1->X() - 1]);
-	}
-	else if (dir == Direction::Right) {
-		_entityMap[t1->Y()][t1->X() + 1].setX(t1->X());
-		t1->setY(t1->X() + 1);
-		std::swap(*t1, _entityMap[t1->Y()][t1->X() + 1]);
-	}
-}
-
-void Level::swap(Container& t1, const Direction& dir) {
-	if (dir == Direction::Up) {
-		_containerMap[t1.Y() - 1][t1.X()].setY(t1.Y());
-		t1.setY(t1.Y() - 1);
-		std::swap(t1, _containerMap[t1.Y() - 1][t1.X()]);
-	}
-	else if (dir == Direction::Down) {
-		_containerMap[t1.Y() + 1][t1.X()].setY(t1.Y());
-		t1.setY(t1.Y() + 1);
-		std::swap(t1, _containerMap[t1.Y() + 1][t1.X()]);
-	}
-	else if (dir == Direction::Left) {
-		_containerMap[t1.Y()][t1.X() - 1].setX(t1.X());
-		t1.setX(t1.X() - 1);
-		std::swap(t1, _containerMap[t1.Y()][t1.X() - 1]);
-	}
-	else if (dir == Direction::Right) {
-		_containerMap[t1.Y()][t1.X() + 1].setY(t1.X());
-		t1.setY(t1.X() + 1);
-		std::swap(t1, _containerMap[t1.Y()][t1.X() + 1]);
-	}
-}
 
 Room Level::findRectRoomLoc()
 {
@@ -165,11 +98,11 @@ Room Level::findRectRoomLoc()
 
 	while (!locationFound && numTries < 150) {
 
-		int roomWidth = GENERATOR.randNum(Room::minRoomWidth, Room::maxRoomWidth + 1);
-		int roomHeight = GENERATOR.randNum(Room::minRoomHeight, Room::maxRoomHeight + 1);
+		int roomWidth = GENERATOR.randNum(Room::minRoomWidth, Room::maxRoomWidth + 1) * _tileWidth;
+		int roomHeight = GENERATOR.randNum(Room::minRoomHeight, Room::maxRoomHeight + 1) * _tileHeight;
 
-		leftX = GENERATOR.randNum(1, (_width - roomWidth));
-		topY = GENERATOR.randNum(1, (_height - roomHeight));
+		leftX = GENERATOR.randNum(1, (_width - roomWidth)) * _tileWidth;;
+		topY = GENERATOR.randNum(1, (_height - roomHeight)) * _tileHeight;
 
 		rightX = leftX + roomWidth;
 		bottomY = topY + roomHeight;
@@ -188,14 +121,18 @@ Room Level::findRectRoomLoc()
 		numTries++;
 	}
 	if (locationFound) {
-		for (int y = topY; y <= bottomY; y++) {
-			for (int x = leftX; x <= rightX; x++) {
-				if (y == topY || y == bottomY || x == leftX || x == rightX)
-					_envMap[y][x].setTile(Tile::Wall);
-				else
-					_envMap[y][x].setTile(Tile::Floor);
+		for (auto& tile : _envMap) {
+			
+			if (tile.Y() >= topY && tile.Y() <= bottomY && tile.X() >= leftX && tile.X() <= rightX) {
+				//If tile is on the edge, make it a wall, might be broke
+				if (tile.Y() == topY || tile.Y() == bottomY || tile.X() == leftX || tile.X() == rightX)
+					tile.setTile(Tile::Wall);
+				//if tile is within room bounds, make it a floor
+				else if (tile.Y() > topY && tile.Y() < bottomY && tile.X() > leftX && tile.X() < rightX)
+					tile.setTile(Tile::Floor);
 			}
 		}
+
 		newRoom.Generate();
 	}
 	return newRoom;
@@ -213,9 +150,9 @@ Room Level::findCircleRoomLoc()
 	Room newRoom;
 
 	while (!locationFound && numTries < 150) {
-		roomRadius = GENERATOR.randNum(Room::minRoomRadius, Room::maxRoomRadius + 1);
-		centerX = GENERATOR.randNum(roomRadius + 1, _width - roomRadius);
-		centerY = GENERATOR.randNum(roomRadius + 1, _height - roomRadius);
+		roomRadius = GENERATOR.randNum(Room::minRoomRadius, Room::maxRoomRadius + 1) * _tileWidth;
+		centerX = GENERATOR.randNum(roomRadius + 1, _width - roomRadius) * _tileWidth;
+		centerY = GENERATOR.randNum(roomRadius + 1, _height - roomRadius) * _tileHeight;
 
 		leftX = centerX - roomRadius;
 		topY = centerY - roomRadius;
@@ -237,15 +174,15 @@ Room Level::findCircleRoomLoc()
 		numTries++;
 	}
 	if (locationFound) {
-		for (int y = topY; y <= bottomY; y++) {
-			for (int x = leftX; x <= rightX; x++) {
-				double distance = circleDistance(x, y, centerX, centerY);
+		for (auto& tile : _envMap) {
+			double distance = circleDistance(tile.X(), tile.Y(), centerX, centerY);
+			if (tile.Y() >= topY && tile.Y() <= bottomY && tile.X() >= leftX && tile.X() <= rightX) {
 				if (distance > roomRadius - 0.5 && distance < roomRadius + 0.5)
-					_envMap[y][x].setTile(Tile::Wall);
+					tile.setTile(Tile::Wall);
 				else if (distance < roomRadius - 0.5)
-					_envMap[y][x].setTile(Tile::Floor);
+					tile.setTile(Tile::Floor);
 				else
-					_envMap[y][x].setTile(Tile::Uninitialized);
+					tile.setTile(Tile::Uninitialized);
 			}
 		}
 		newRoom.Generate();
@@ -265,14 +202,16 @@ Room Level::findRectRoomLocBSP(const Coord& topLeft, const Coord& bottomRight)
 	int roomWidth = 0;
 	int roomHeight = 0;
 
-	const int maxRoomWidth =  ((bottomRight.x - topLeft.x) - 2 > Room::maxRoomWidth)  ? Room::maxRoomWidth  : (bottomRight.x - topLeft.x) - 2;
-	const int maxRoomHeight = ((bottomRight.y - topLeft.y) - 2 > Room::maxRoomHeight) ? Room::maxRoomHeight : (bottomRight.y - topLeft.y) - 2;
+	const int maxRoomWidth =  ((bottomRight.x - topLeft.x) - 2 > Room::maxRoomWidth)  ? Room::maxRoomWidth * _tileWidth   
+																					  :	((bottomRight.x - topLeft.x) - 2) * _tileWidth;
+	const int maxRoomHeight = ((bottomRight.y - topLeft.y) - 2 > Room::maxRoomHeight) ? Room::maxRoomHeight * _tileHeight 
+																					  : ((bottomRight.y - topLeft.y) - 2) * _tileHeight;
 
 	while (!locationFound) {
 		// make sure room can fit in side the current dimension
 		do {
-			roomWidth = GENERATOR.randNum(Room::minRoomWidth, maxRoomWidth + 1);
-			roomHeight = GENERATOR.randNum(Room::minRoomHeight, maxRoomHeight + 1);
+			roomWidth = GENERATOR.randNum(Room::minRoomWidth, maxRoomWidth + 1) * _tileWidth;
+			roomHeight = GENERATOR.randNum(Room::minRoomHeight, maxRoomHeight + 1) * _tileHeight;
 			std::cout << "Width: " << roomWidth << " Height: " << roomHeight << '\n';
 		} while (roomWidth > maxRoomWidth && roomHeight > maxRoomHeight);
 
@@ -293,18 +232,19 @@ Room Level::findRectRoomLocBSP(const Coord& topLeft, const Coord& bottomRight)
 			locationFound = true;
 		else 
 			newRoom = Room();
-		
 	}
 
 	std::cout << "Rect Room: (" << leftX << ',' << topY << ") : (" << rightX << ',' << bottomY << ")\n";
 
 	//Inscribe room onto tile map
-	for (int y = topY; y <= bottomY; y++) {
-		for (int x = leftX; x <= rightX; x++) {
-			if (y == topY || y == bottomY || x == leftX || x == rightX)
-				_envMap[y][x].setTile(Tile::Wall);
-			else
-				_envMap[y][x].setTile(Tile::Floor);
+	for (auto& tile : _envMap) {
+		if (tile.Y() >= topY && tile.Y() <= bottomY && tile.X() >= leftX && tile.X() <= rightX) {
+			//If tile is on the edge, make it a wall, might be broke
+			if (tile.Y() == topY || tile.Y() == bottomY || tile.X() == leftX || tile.X() == rightX)
+				tile.setTile(Tile::Wall);
+			//if tile is within room bounds, make it a floor
+			else if (tile.Y() > topY && tile.Y() < bottomY && tile.X() > leftX && tile.X() < rightX)
+				tile.setTile(Tile::Floor);
 		}
 	}
 	newRoom.Generate();
@@ -319,7 +259,7 @@ Room Level::findCircleRoomLocBSP(const Coord& topLeft, const Coord& bottomRight)
 	bool locationFound = false;
 	//Find the shortest dimension (x or y) to prevent creating a radius too large for the space
 	int shortestCoord = std::min((bottomRight.x - topLeft.x), (bottomRight.y - topLeft.y));
-	const int maxRadius =  ((shortestCoord - 2) / 2 > Room::maxRoomRadius) ? Room::maxRoomRadius : (shortestCoord - 2) / 2;
+	const int maxRadius =  ((shortestCoord - 2) / 2 > Room::maxRoomRadius) ? Room::maxRoomRadius * _tileWidth : ((shortestCoord - 2) / 2) * _tileWidth;
 	int roomRadius = 0;
 
 	int centerX = 0, centerY = 0;
@@ -330,12 +270,12 @@ Room Level::findCircleRoomLocBSP(const Coord& topLeft, const Coord& bottomRight)
 	while (!locationFound) {
 		// make sure room can fit in side the current dimension
 		do {
-			roomRadius = GENERATOR.randNum(Room::minRoomRadius, maxRadius + 1);
+			roomRadius = GENERATOR.randNum(Room::minRoomRadius, maxRadius + 1) * _tileWidth;
 			std::cout << "Radius: " << roomRadius << '\n';
 		} while (roomRadius > maxRadius);
 
-		centerX = GENERATOR.randNum(topLeft.x + roomRadius + 1, bottomRight.x - roomRadius + 1);
-		centerY = GENERATOR.randNum(topLeft.y + roomRadius + 1, bottomRight.y - roomRadius + 1);
+		centerX = GENERATOR.randNum(topLeft.x + roomRadius + 1, bottomRight.x - roomRadius + 1) * _tileWidth;
+		centerY = GENERATOR.randNum(topLeft.y + roomRadius + 1, bottomRight.y - roomRadius + 1) * _tileHeight;
 
 		leftX = centerX - roomRadius;
 		topY = centerY - roomRadius;
@@ -355,18 +295,17 @@ Room Level::findCircleRoomLocBSP(const Coord& topLeft, const Coord& bottomRight)
 			newRoom = Room();
 	}
 	//Inscribe room onto tile map
-	for (int y = topY; y <= bottomY; y++) {
-		for (int x = leftX; x <= rightX; x++) {
-			double distance = circleDistance(x, y, centerX, centerY);
+	for (auto& tile : _envMap) {
+		double distance = circleDistance(tile.X(), tile.Y(), centerX, centerY);
+		if (tile.Y() >= topY && tile.Y() <= bottomY && tile.X() >= leftX && tile.X() <= rightX) {
 			if (distance > roomRadius - 0.5 && distance < roomRadius + 0.5)
-				_envMap[y][x].setTile(Tile::Wall);
+				tile.setTile(Tile::Wall);
 			else if (distance < roomRadius - 0.5)
-				_envMap[y][x].setTile(Tile::Floor);
+				tile.setTile(Tile::Floor);
 			else
-				_envMap[y][x].setTile(Tile::Uninitialized);
+				tile.setTile(Tile::Uninitialized);
 		}
 	}
-
 	newRoom.Generate();
 	return newRoom;
 }
@@ -384,8 +323,8 @@ void Level::generateRoomsBSP()
 	Coord bottomRight;
 	topLeft.x = 0;
 	topLeft.y = 0;
-	bottomRight.x = _width - 1;
-	bottomRight.y = _height - 1;
+	bottomRight.x = (_width - 1)  * _tileWidth;
+	bottomRight.y = (_height - 1) * _tileHeight;
 
 	const int VERTICAL = 0, HORIZONTIAL = 1;
 	const int UP = 0, DOWN = 1;
@@ -394,15 +333,15 @@ void Level::generateRoomsBSP()
 
 	Room newRoom = Room();
 
-	int currRoomWidth =  (bottomRight.x - topLeft.x);
-	int currRoomHeight = (bottomRight.y - topLeft.y);
+	int currRoomWidth =  (bottomRight.x - topLeft.x) * _tileWidth;
+	int currRoomHeight = (bottomRight.y - topLeft.y) * _tileHeight;
 
 	for (int i = 0; i < numRooms; i++) {
 
-		while (currRoomWidth > Room::maxRoomWidth && currRoomHeight > Room::maxRoomHeight ) {
+		while (currRoomWidth >= Room::maxRoomWidth && currRoomHeight >= Room::maxRoomHeight ) {
 
-			splitDir = (GENERATOR.randNum(VERTICAL, HORIZONTIAL + 1) == VERTICAL) ? VERTICAL : HORIZONTIAL;
-			upOrDown = (GENERATOR.randNum(UP, DOWN + 1) == UP) ? UP : DOWN;
+			splitDir = GENERATOR.randNum(VERTICAL, HORIZONTIAL + 1);
+			upOrDown = GENERATOR.randNum(UP, DOWN + 1);
 
 			//if (currRoomHeight <= Room::maxRoomHeight || currRoomWidth <= Room::maxRoomWidth)
 			//	break;

@@ -6,30 +6,24 @@
 enum class Map { Tile, Entity, Container };
 enum class Direction { Up, Down, Left, Right };
 
-
-using EnvMap = std::vector<std::vector<Tile>>;
-using ContainerMap = std::vector<std::vector<Container>>;
-using EntityMap = std::vector<std::vector<Entity>>;
+using TileMap = std::vector<std::vector<Tile>>;
 
 class Level
 {
 public:
-    Level(const int& tilesWide, const int& tilesHigh);
+    Level(const int& tilesWide, const int& tilesHigh, const int& tileWidth, const int& tileHeight);
     ~Level();
 
     void Generate(Entity* player);
     Tile& getTile(const int& x, const int& y);
-    Entity& getEntity(const int& x, const int& y);
-    Container& getContainer(const int& x, const int& y);
+    Entity& getEntity(const int& index);
+    Container& getContainer(const int& index);
     std::vector<Room>& getRooms() { return _rooms; }
     int Width() { return _width; }
     int Height() { return _height; }
 
-    void reset(const Map& map, const int& x, const int& y);
+    void reset(const Map& map, const int& index);
 
-    void swap(Tile& t1, const Direction& dir);
-    void swap(Entity* t1,const Direction& dir);
-    void swap(Container& t1, const Direction& dir);
 
     static const int maxRooms = 9;
     static const int minRooms = 6;
@@ -52,10 +46,11 @@ private:
     void generateContainers();
 
 private:
-    int _width = 0, _height = 0;
-    EnvMap _envMap;
-    ContainerMap _containerMap;
-    EntityMap _entityMap;
+    int _width = 0, _height = 0,
+        _tileWidth = 0, _tileHeight = 0;
+    TileMap _envMap;
+    std::vector<Container> _containerMap;
+    std::vector<Entity> _entityMap;
     std::vector<Room> _rooms;
     Room* _startRoom;
     Room* _exitRoom;
